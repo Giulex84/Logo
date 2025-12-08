@@ -194,6 +194,14 @@ export default function Home() {
             predictable CORS behavior for Pi Browser compatibility.
           </li>
         </ul>
+        <div className="flex flex-wrap gap-3 text-sm text-piGold">
+          <a className="rounded-lg border border-piGold/40 bg-piGold/10 px-3 py-2 font-semibold hover:border-piGold" href="/terms">
+            View Terms of Use
+          </a>
+          <a className="rounded-lg border border-piGold/40 bg-piGold/10 px-3 py-2 font-semibold hover:border-piGold" href="/privacy">
+            View Privacy Policy
+          </a>
+        </div>
       </section>
     </main>
   );
