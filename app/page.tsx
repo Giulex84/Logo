@@ -169,6 +169,32 @@ export default function Home() {
           </article>
         ))}
       </section>
+
+      <section className="glass-card space-y-4 p-6 md:p-8">
+        <h2 className="text-2xl font-semibold">Policies and terms for Pi compliance</h2>
+        <p className="text-sm text-slate-200">
+          This demo stays aligned with the Pi Network developer start guide: keep everything in English, publish your validation
+          key, and make your operating terms transparent for Pioneers.
+        </p>
+        <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
+          <li>
+            Validation: the official key is served from <code className="rounded bg-white/10 px-1">/validation-key.txt</code>
+            so the Pi Browser and Vercel deployment can verify ownership without extra routing.
+          </li>
+          <li>
+            Privacy Policy: no personal data is stored by default; if you add analytics or wallet calls, disclose the provider,
+            retention period, and opt-out steps directly on this page.
+          </li>
+          <li>
+            Terms of Use: this interface is for demonstration and educational purposes. Custom integrations (e.g., payments or
+            payouts) must follow Pi Network rules, respect user consent, and avoid custodial handling of Pioneer funds.
+          </li>
+          <li>
+            Safety: keep content Pi-friendly, avoid prohibited products, and confirm all third-party APIs use HTTPS with
+            predictable CORS behavior for Pi Browser compatibility.
+          </li>
+        </ul>
+      </section>
     </main>
   );
 }
