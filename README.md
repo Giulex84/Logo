@@ -30,11 +30,12 @@ If you prefer environment variables, expose `NEXT_PUBLIC_PI_VALIDATION_KEY` in V
 
 ### Environment variables
 
-The project works out-of-the-box, but you can expose one optional variable for Pi validation or integrations:
+The project works out-of-the-box, but you can expose optional variables for Pi validation or SDK initialization:
 
 | Name | Required | Scope | Purpose |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_PI_VALIDATION_KEY` | No | Production/Preview | Alternative way to deliver the Pi validation string through the UI or an API route. Keep it in the Vercel dashboard and avoid hardcoding secrets. |
+| `NEXT_PUBLIC_PI_APP_ID` | No | Production/Preview | Identifies your Pi app when initializing the Pi SDK in the Pi Browser. Use the ID issued by Pi Network. |
 
 Add the variable in both **Production** and **Preview** environments if you need consistent behavior across deployments.
 
