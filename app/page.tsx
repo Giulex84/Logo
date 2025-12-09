@@ -1,6 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  authenticateWithPi,
+  createTestPayment,
+  detectPiSdk,
+  initializePiSdk,
+  type PiAuthResult
+} from "@/lib/pi-sdk";
 
 const currencySymbols = {
   pi: "π",
@@ -21,11 +29,35 @@ const exchangeRates: ExchangeRates = {
 export default function Home() {
   const [amount, setAmount] = useState(1);
   const [sourceCurrency, setSourceCurrency] = useState<Currency>("pi");
+  const [piBrowserDetected, setPiBrowserDetected] = useState(false);
+  const [piSdkAvailable, setPiSdkAvailable] = useState(false);
+  const [piStatus, setPiStatus] = useState("Checking Pi Browser...");
+  const [authResult, setAuthResult] = useState<PiAuthResult | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState(0.01);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+
+  useEffect(() => {
+    const { sdk, isPiBrowser } = detectPiSdk();
+    setPiBrowserDetected(isPiBrowser);
+    setPiSdkAvailable(Boolean(sdk));
+    setPiStatus(
+      sdk
+        ? "Pi SDK detected. Ready for secure sign-in."
+        : isPiBrowser
+          ? "Pi Browser is open. Waiting for the SDK to finish loading."
+          : "Open this DApp inside Pi Browser to unlock the SDK."
+    );
+
+    if (sdk) {
+      initializePiSdk(sdk);
+    }
+  }, []);
 
   const conversions = useMemo(() => {
-    const targets = Object.keys(currencySymbols).filter(
-      (key) => key !== sourceCurrency
-    ) as Currency[];
+    const targets = Object.keys(currencySymbols).filter((key) => key !== sourceCurrency) as Currency[];
 
     return targets.map((target) => {
       const rate = exchangeRates[sourceCurrency]?.[target];
@@ -38,6 +70,69 @@ export default function Home() {
     });
   }, [amount, sourceCurrency]);
 
+  const handleSignIn = async () => {
+    setAuthError(null);
+    setPaymentStatus(null);
+    setIsAuthLoading(true);
+
+    try {
+      const auth = await authenticateWithPi((payment) => {
+        setPaymentStatus(`Found incomplete payment ${payment.identifier}. Complete it on your server.`);
+      });
+
+      setAuthResult(auth);
+      setPiStatus("Authenticated with Pi SDK");
+    } catch (error) {
+      setAuthError((error as Error).message);
+      setAuthResult(null);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    setPaymentStatus(null);
+    setAuthError(null);
+
+    if (!authResult) {
+      setPaymentStatus("Sign in with Pi first to send Pi or Test-Pi.");
+      return;
+    }
+
+    setIsPaymentLoading(true);
+
+    try {
+      const payment = await createTestPayment(paymentAmount, "Test Pi tip from Pi Currency Companion", {
+        onReadyForServerApproval: (pendingPayment) => {
+          setPaymentStatus(
+            `Payment ${pendingPayment.identifier} is pending server approval. Call your backend to approve with Pi Network.`
+          );
+        },
+        onReadyForServerCompletion: (pendingPayment) => {
+          setPaymentStatus(`Server should now complete payment ${pendingPayment.identifier}.`);
+        },
+        onCancel: (pendingPayment) => {
+          const paymentId = pendingPayment?.identifier ? ` ${pendingPayment.identifier}` : "";
+          setPaymentStatus(`Payment${paymentId} cancelled by the Pioneer.`);
+        },
+        onError: (error, pendingPayment) => {
+          const paymentId = pendingPayment?.identifier ? ` on payment ${pendingPayment.identifier}` : "";
+          setPaymentStatus(`Error${paymentId}: ${String(error)}`);
+        }
+      });
+
+      if (payment?.identifier) {
+        setPaymentStatus(
+          `Payment ${payment.identifier} created. Approve and complete it server-side per Pi Network API docs.`
+        );
+      }
+    } catch (error) {
+      setPaymentStatus((error as Error).message);
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
+
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-12">
       <header className="flex flex-col gap-4 text-center">
@@ -46,18 +141,12 @@ export default function Home() {
           <span className="font-semibold">Pi Currency Companion</span>
           <span className="text-xs text-slate-300">Ready for Pi Browser + Vercel</span>
         </div>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-          A delightful multi-currency helper for Pi-friendly projects
-        </h1>
+        <h1 className="text-4xl font-bold leading-tight md:text-5xl">A delightful multi-currency helper for Pi-friendly projects</h1>
         <p className="text-lg text-slate-200 md:text-xl">
-          Keep everything in English, showcase Pi, Dollar, and Euro values, and stay aligned with
-          the Pi developer playbook.
+          Keep everything in English, showcase Pi, Dollar, and Euro values, and stay aligned with the Pi developer playbook.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <a
-            className="button-primary"
-            href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer"
-          >
+          <a className="button-primary" href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer">
             Read Pi community guide
           </a>
           <a
@@ -70,6 +159,64 @@ export default function Home() {
           </a>
         </div>
       </header>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="glass-card p-6 md:p-7">
+          <p className="text-sm uppercase tracking-[0.2em] text-piGold">Pi Browser</p>
+          <h2 className="text-2xl font-semibold">SDK readiness</h2>
+          <ul className="mt-4 space-y-2 text-sm text-slate-200">
+            <li>
+              <span className="font-semibold text-piGold">Detected:</span> {piBrowserDetected ? "Pi Browser" : "Standard browser"}
+            </li>
+            <li>
+              <span className="font-semibold text-piGold">SDK status:</span> {piSdkAvailable ? "Loaded" : "Waiting"}
+            </li>
+            <li>
+              <span className="font-semibold text-piGold">State:</span> {piStatus}
+            </li>
+          </ul>
+          <p className="mt-4 text-sm text-slate-300">
+            Keep the app inside Pi Browser to respect the platform Terms of Service and make sure authentication, transactions,
+            and validation work as expected.
+          </p>
+        </div>
+
+        <div className="glass-card flex flex-col gap-4 p-6 md:p-7">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-piGold">Authentication</p>
+              <h2 className="text-xl font-semibold">Secure Pi login</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleSignIn}
+              disabled={!piSdkAvailable || isAuthLoading}
+              className="rounded-lg bg-piGold px-4 py-2 text-sm font-semibold text-[#0f1020] shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isAuthLoading ? "Signing in..." : "Login with Pi"}
+            </button>
+          </div>
+
+          {authResult ? (
+            <div className="rounded-lg border border-green-400/60 bg-green-500/10 p-4 text-sm text-green-100">
+              <p className="font-semibold">Authenticated Pioneer</p>
+              <p>ID: {authResult.user.uid}</p>
+              <p>Username: {authResult.user.username}</p>
+              <p>Roles: {authResult.user.roles.join(", ") || "n/a"}</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
+              <p>No session yet. Use the Pi SDK login to identify the Pioneer before any payment call.</p>
+            </div>
+          )}
+
+          {authError ? <p className="text-sm text-red-300">{authError}</p> : null}
+
+          <p className="text-xs text-slate-400">
+            The SDK handles Pioneer identity; do not roll your own auth or bypass Pi Network policies.
+          </p>
+        </div>
+      </section>
 
       <section className="grid gap-6 md:grid-cols-[1.25fr_0.75fr]">
         <div className="glass-card p-6 md:p-8">
@@ -150,6 +297,73 @@ export default function Home() {
               <li>Use <code className="rounded bg-white/10 px-1">npm run dev</code> for a local preview, then push to Vercel.</li>
               <li>Set <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_VALIDATION_KEY</code> if you prefer env-based delivery.</li>
             </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
+        <div className="glass-card flex flex-col gap-4 p-6 md:p-7">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-piGold">Transactions</p>
+              <h2 className="text-xl font-semibold">Send Pi or Test-Pi</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handlePayment}
+              disabled={isPaymentLoading}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:ring-piGold/80 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isPaymentLoading ? "Processing..." : "Create payment"}
+            </button>
+          </div>
+
+          <p className="text-sm text-slate-200">
+            Payments flow through the Pi SDK. Your backend must approve and complete the payment using the identifiers returned in the callbacks.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-100" htmlFor="payment-amount">
+                Amount to send
+              </label>
+              <input
+                id="payment-amount"
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={paymentAmount}
+                onChange={(event) => setPaymentAmount(Number(event.target.value) || 0.01)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-piGold focus:ring-2 focus:ring-piGold/60"
+              />
+              <p className="text-xs text-slate-400">Use test amounts until your server-side approval logic is live.</p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
+              <p className="font-semibold text-piGold">Server reminders</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-300">
+                <li>Approve payments with your Pi backend keys.</li>
+                <li>Complete the payment after onReadyForServerApproval.</li>
+                <li>Store receipts securely; never expose secrets client-side.</li>
+              </ul>
+            </div>
+          </div>
+
+          {paymentStatus ? <p className="text-sm text-piGold">{paymentStatus}</p> : null}
+        </div>
+
+        <div className="glass-card p-6 md:p-7">
+          <p className="text-sm uppercase tracking-[0.2em] text-piGold">Safety + compliance</p>
+          <h2 className="text-xl font-semibold">Stay aligned with Pi Network</h2>
+          <ul className="mt-3 space-y-2 text-sm text-slate-200">
+            <li>Use HTTPS everywhere and keep secrets on the server.</li>
+            <li>Respect the Pi Terms of Service and avoid prohibited content.</li>
+            <li>Authenticate every Pioneer through the official Pi SDK.</li>
+            <li>Highlight policies inside Pi Browser friendly routes.</li>
+            <li>Prefer smallest permissions; only request username + payments.</li>
+          </ul>
+          <div className="mt-4 rounded-lg border border-piGold/60 bg-piGold/10 p-4 text-sm text-piGold">
+            The UI is optimized for Pi Browser with concise routes, self-hosted assets, and no external trackers by default.
           </div>
         </div>
       </section>
