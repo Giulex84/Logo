@@ -19,6 +19,10 @@ export type PiAuthResult = {
   user: PiUser;
 };
 
+export interface PiVerifiedAuthResponse {
+  user: PiUser;
+}
+
 export type PiPaymentData = {
   amount: number;
   memo: string;
@@ -80,6 +84,40 @@ export async function authenticateWithPi(
 ): Promise<PiAuthResult> {
   const sdk = await ensurePiSdk();
   return sdk.authenticate(["username", "payments"], onIncompletePaymentFound);
+}
+
+export async function verifyPiAuth(authResult: PiAuthResult): Promise<PiVerifiedAuthResponse> {
+  const response = await fetch("/api/pi/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ authResult })
+  });
+
+  if (!response.ok) {
+    let message = "Failed to verify Pi login on the server.";
+
+    try {
+      const payload = (await response.json()) as { error?: string; details?: string };
+
+      if (payload?.error) {
+        message = payload.details ? `${payload.error}: ${payload.details}` : payload.error;
+      }
+    } catch {
+      // Ignore JSON parse errors and fall back to default message
+    }
+
+    throw new Error(message);
+  }
+
+  const payload = (await response.json()) as PiVerifiedAuthResponse | null;
+
+  if (!payload?.user) {
+    throw new Error("Pi verification response did not include a user payload.");
+  }
+
+  return payload;
 }
 
 export async function createTestPayment(

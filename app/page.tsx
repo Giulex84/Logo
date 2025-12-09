@@ -7,7 +7,8 @@ import {
   createTestPayment,
   detectPiSdk,
   initializePiSdk,
-  type PiAuthResult
+  type PiAuthResult,
+  verifyPiAuth
 } from "@/lib/pi-sdk";
 
 const currencySymbols = {
@@ -33,6 +34,7 @@ export default function Home() {
   const [piSdkAvailable, setPiSdkAvailable] = useState(false);
   const [piStatus, setPiStatus] = useState("Checking Pi Browser...");
   const [authResult, setAuthResult] = useState<PiAuthResult | null>(null);
+  const [serverUser, setServerUser] = useState<PiAuthResult["user"] | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState(0.01);
@@ -73,18 +75,27 @@ export default function Home() {
   const handleSignIn = async () => {
     setAuthError(null);
     setPaymentStatus(null);
+    setServerUser(null);
     setIsAuthLoading(true);
+
+    setPiStatus("Requesting Pi authentication...");
 
     try {
       const auth = await authenticateWithPi((payment) => {
         setPaymentStatus(`Found incomplete payment ${payment.identifier}. Complete it on your server.`);
       });
 
+      setPiStatus("Authenticated with Pi SDK. Verifying with server...");
+
+      const verification = await verifyPiAuth(auth);
+
       setAuthResult(auth);
-      setPiStatus("Authenticated with Pi SDK");
+      setServerUser(verification.user);
+      setPiStatus("Server verification complete. Pioneer session ready.");
     } catch (error) {
       setAuthError((error as Error).message);
       setAuthResult(null);
+      setServerUser(null);
     } finally {
       setIsAuthLoading(false);
     }
@@ -199,10 +210,28 @@ export default function Home() {
 
           {authResult ? (
             <div className="rounded-lg border border-green-400/60 bg-green-500/10 p-4 text-sm text-green-100">
-              <p className="font-semibold">Authenticated Pioneer</p>
-              <p>ID: {authResult.user.uid}</p>
-              <p>Username: {authResult.user.username}</p>
-              <p>Roles: {authResult.user.roles.join(", ") || "n/a"}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-semibold">
+                  {serverUser ? "Server-verified Pioneer" : "Authenticated via Pi SDK"}
+                </p>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    serverUser ? "bg-green-600/80 text-white" : "bg-yellow-500/20 text-yellow-200"
+                  }`}
+                >
+                  {serverUser ? "Verified" : "Awaiting server verify"}
+                </span>
+              </div>
+
+              <p>ID: {(serverUser ?? authResult.user)?.uid}</p>
+              <p>Username: {(serverUser ?? authResult.user)?.username}</p>
+              <p>Roles: {(serverUser ?? authResult.user)?.roles.join(", ") || "n/a"}</p>
+
+              {!serverUser ? (
+                <p className="mt-2 text-xs text-yellow-100">
+                  Server verification is required before treating this session as trusted.
+                </p>
+              ) : null}
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
