@@ -42,14 +42,26 @@ Add the variable in both **Production** and **Preview** environments if you need
 
 > ℹ️ The app does **not** use `NEXT_PUBLIC_PI_API_KEY`, `NEXT_PUBLIC_PI_APP_ID`, or `NEXT_PUBLIC_PI_SANDBOX` at this time. You only need to set them if you later integrate Pi SDK calls that require those identifiers.
 
-### What’s missing for Pi Browser login
+### Pi Browser login
 
-This demo does **not** implement Pi authentication. To let Pioneers log in with the Pi Browser you’ll need to:
+The project now includes a **server-side verification endpoint** for the Pi authentication payload at `POST /api/pi/verify` (App Router).
 
-1. Initialize the already-loaded Pi JavaScript SDK (`window.Pi`) with your Pi App ID on the client.
-2. Provide configuration values (e.g., `NEXT_PUBLIC_PI_APP_ID`, `NEXT_PUBLIC_PI_API_KEY`, and `NEXT_PUBLIC_PI_SANDBOX` if testing) so the SDK can request login.
-3. Build a secure backend endpoint that verifies the Pi authentication payload and issues a session for your app.
-4. Allowlist your deployed domain in the Pi developer console so login calls from Pi Browser are accepted.
+How it works:
+
+1. The client calls `window.Pi.authenticate(...)` and posts the resulting `authResult` (which contains `accessToken`) to `/api/pi/verify`.
+2. The API route uses your Pi API key to call Pi Network’s verification endpoint (`/v2/me`) and returns the verified user payload.
+3. On success you can create a session/JWT in the response if you wish (currently the route only echoes the verified user).
+
+Environment variables now used by the authentication flow:
+
+| Name | Required | Scope | Purpose |
+| --- | --- | --- | --- |
+| `PI_API_KEY` (preferred) or `NEXT_PUBLIC_PI_API_KEY` | Yes | Server | Secret key used by `/api/pi/verify` to validate Pi auth tokens. Keep this private and avoid exposing it to the client. |
+| `NEXT_PUBLIC_PI_APP_ID` | Yes (for login) | Client/Server | Identifies your Pi app when initializing the Pi SDK. |
+| `NEXT_PUBLIC_PI_SANDBOX` | No | Client/Server | Set to `true` when targeting the Pi sandbox environment. |
+| `PI_API_BASE_URL` | No | Server | Override the Pi API base (defaults to Pi production; enable sandbox hosts if needed). |
+
+> ℹ️ For security, prefer `PI_API_KEY` (without the `NEXT_PUBLIC_` prefix) so the key is only available on the server.
 
 ### Policy URLs
 
