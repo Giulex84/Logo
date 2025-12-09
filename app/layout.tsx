@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -23,6 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
+        <Script
+          src="https://sdk.minepi.com/pi-sdk.js"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
         <div className="min-h-screen bg-gradient-to-br from-[#0f1020] via-[#0b0c1d] to-[#0b0f2d] text-slate-100">
           {children}
         </div>

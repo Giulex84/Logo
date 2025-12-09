@@ -392,7 +392,7 @@ export default function Home() {
         </p>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
           <li>
-            Validation: the official key is served from <code className="rounded bg-white/10 px-1">/validation-key.txt</code>
+            Validation: the official key is served from <code className="rounded bg-white/10 px-1">/.well-known/pi-validation.txt</code>
             so the Pi Browser and Vercel deployment can verify ownership without extra routing.
           </li>
           <li>
