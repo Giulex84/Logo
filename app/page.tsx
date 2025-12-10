@@ -351,6 +351,10 @@ export default function Home() {
             Payments flow through the Pi SDK. Your backend must approve and complete the payment using the identifiers returned in the callbacks.
           </p>
 
+          <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
+            IOU storage is not active yet—no database, Supabase, or payouts are wired. This keeps the demo privacy-safe while you finish server logic.
+          </div>
+
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-100" htmlFor="payment-amount">

@@ -62,9 +62,11 @@ export function detectPiSdk(): { sdk: PiNetwork | null; isPiBrowser: boolean } {
 export function initializePiSdk(sdk: PiNetwork | null): void {
   if (!sdk?.init) return;
 
+  const useSandbox = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
+
   sdk.init({
     version: "2.0",
-    sandbox: true,
+    sandbox: useSandbox,
     appId: process.env.NEXT_PUBLIC_PI_APP_ID
   });
 }
