@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: "Simple Pi-friendly currency app with Pi, Dollar, and Euro values.",
   applicationName: "Pi Currency Companion",
   keywords: ["Pi", "Pi Network", "currency", "finance", "Next.js"],
-  metadataBase: new URL("https://example.com"),
+  metadataBase: new URL("https://iou4088.pi"),
   openGraph: {
     title: "Pi Currency Companion",
     description: "A friendly Pi app for quick currency guidance.",
-    url: "https://example.com",
+    url: "https://iou4088.pi",
     siteName: "Pi Currency Companion"
   }
 };
