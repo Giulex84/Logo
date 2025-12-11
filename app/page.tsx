@@ -152,9 +152,9 @@ export default function Home() {
           <span className="font-semibold">Pi Currency Companion</span>
           <span className="text-xs text-slate-300">Ready for Pi Browser + Vercel</span>
         </div>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">A delightful multi-currency helper for Pi-friendly projects</h1>
+        <h1 className="text-4xl font-bold leading-tight md:text-5xl">A professional IOU and multi-currency companion</h1>
         <p className="text-lg text-slate-200 md:text-xl">
-          Keep everything in English, showcase Pi, Dollar, and Euro values, and stay aligned with the Pi developer playbook.
+          Model IOUs alongside Pi, Dollar, and Euro values while keeping copy in English and honoring the Pi Core Team guidelines.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <a className="button-primary" href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer">
@@ -196,7 +196,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Authentication</p>
-              <h2 className="text-xl font-semibold">Secure Pi login</h2>
+              <h2 className="text-xl font-semibold">Secure Pi login for IOU workflows</h2>
             </div>
             <button
               type="button"
@@ -235,14 +235,14 @@ export default function Home() {
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-              <p>No session yet. Use the Pi SDK login to identify the Pioneer before any payment call.</p>
+              <p>No session yet. Use the Pi SDK login to identify Pioneers before any IOU issuance or payment call.</p>
             </div>
           )}
 
           {authError ? <p className="text-sm text-red-300">{authError}</p> : null}
 
           <p className="text-xs text-slate-400">
-            The SDK handles Pioneer identity; do not roll your own auth or bypass Pi Network policies.
+            The SDK handles Pioneer identity; keep IOU promises and settlement steps tied to verified sessions and stay within Pi Network policies.
           </p>
         </div>
       </section>
@@ -253,7 +253,7 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm uppercase tracking-[0.2em] text-piGold">Converter</p>
-                <h2 className="text-2xl font-semibold">Pick a currency and see its friendly twins</h2>
+                <h2 className="text-2xl font-semibold">Pick a currency and estimate IOU face values</h2>
               </div>
               <div className="flex gap-2">
                 {(Object.keys(currencySymbols) as Currency[]).map((currency) => (
@@ -302,7 +302,7 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-slate-300">
-              Exchange rates are illustrative. Connect your own API or Pi payouts once you wire in real-time data.
+              Exchange rates are illustrative. Connect your own API and IOU redemption rules before promising settlement values.
             </p>
           </div>
         </div>
@@ -314,7 +314,7 @@ export default function Home() {
             <li>Add your <strong>validation key</strong> in <code className="rounded bg-white/10 px-2 py-1">public/.well-known/pi-validation.txt</code>.</li>
             <li>Confirm the file is reachable at <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code> after deployment.</li>
             <li>Deploy to Vercel (no server config needed). Environment variables go in the Vercel dashboard.</li>
-            <li>Keep everything in English and match the Pi community developer guide.</li>
+            <li>Keep everything in English, document IOU terms, and match the Pi community developer guide.</li>
           </ol>
           <div className="rounded-xl border border-piGold/60 bg-piGold/10 px-4 py-3 text-sm text-piGold">
             We left a placeholder key so you can drop in your official string as soon as you receive it.
@@ -335,7 +335,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Transactions</p>
-              <h2 className="text-xl font-semibold">Send Pi or Test-Pi</h2>
+              <h2 className="text-xl font-semibold">Manage IOUs and settlement</h2>
             </div>
             <button
               type="button"
@@ -348,11 +348,11 @@ export default function Home() {
           </div>
 
           <p className="text-sm text-slate-200">
-            Payments flow through the Pi SDK. Your backend must approve and complete the payment using the identifiers returned in the callbacks.
+            Payments flow through the Pi SDK. Treat each request as an IOU lifecycle step—your backend should log the obligation, approve server-side, and complete settlement using the identifiers returned in the callbacks.
           </p>
 
           <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
-            IOU storage is not active yet—no database, Supabase, or payouts are wired. This keeps the demo privacy-safe while you finish server logic.
+            IOU storage is not active yet—no database, Supabase, or payouts are wired. This keeps the demo privacy-safe while you formalize your terms and server logic.
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -369,14 +369,14 @@ export default function Home() {
                 onChange={(event) => setPaymentAmount(Number(event.target.value) || 0.01)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-piGold focus:ring-2 focus:ring-piGold/60"
               />
-              <p className="text-xs text-slate-400">Use test amounts until your server-side approval logic is live.</p>
+              <p className="text-xs text-slate-400">Use test amounts until your server-side approval and IOU recording logic is live.</p>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
               <p className="font-semibold text-piGold">Server reminders</p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-300">
                 <li>Approve payments with your Pi backend keys.</li>
-                <li>Complete the payment after onReadyForServerApproval.</li>
+                <li>Record IOU details on the server and complete settlement after onReadyForServerApproval.</li>
                 <li>Store receipts securely; never expose secrets client-side.</li>
               </ul>
             </div>
@@ -387,16 +387,16 @@ export default function Home() {
 
         <div className="glass-card p-6 md:p-7">
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">Safety + compliance</p>
-          <h2 className="text-xl font-semibold">Stay aligned with Pi Network</h2>
+          <h2 className="text-xl font-semibold">Keep IOUs inside Pi Network guardrails</h2>
           <ul className="mt-3 space-y-2 text-sm text-slate-200">
             <li>Use HTTPS everywhere and keep secrets on the server.</li>
             <li>Respect the Pi Terms of Service and avoid prohibited content.</li>
             <li>Authenticate every Pioneer through the official Pi SDK.</li>
-            <li>Highlight policies inside Pi Browser friendly routes.</li>
+            <li>Document IOU terms (issuance, redemption, expiry) in English before any launch.</li>
             <li>Prefer smallest permissions; only request username + payments.</li>
           </ul>
           <div className="mt-4 rounded-lg border border-piGold/60 bg-piGold/10 p-4 text-sm text-piGold">
-            The UI is optimized for Pi Browser with concise routes, self-hosted assets, and no external trackers by default.
+            The UI is optimized for Pi Browser with concise routes, self-hosted assets, and no external trackers by default so IOU communication stays predictable.
           </div>
         </div>
       </section>
@@ -418,10 +418,10 @@ export default function Home() {
       </section>
 
       <section className="glass-card space-y-4 p-6 md:p-8">
-        <h2 className="text-2xl font-semibold">Policies and terms for Pi compliance</h2>
+        <h2 className="text-2xl font-semibold">Policies and terms for Pi-compliant IOUs</h2>
         <p className="text-sm text-slate-200">
           This demo stays aligned with the Pi Network developer start guide: keep everything in English, publish your validation
-          key, and make your operating terms transparent for Pioneers.
+          key, and keep IOU promises transparent for Pioneers.
         </p>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
           <li>
@@ -429,12 +429,12 @@ export default function Home() {
             so the Pi Browser and Vercel deployment can verify ownership without extra routing.
           </li>
           <li>
-            Privacy Policy: no personal data is stored by default; if you add analytics or wallet calls, disclose the provider,
+            Privacy Policy: no personal data is stored by default; if you add analytics, wallet calls, or IOU ledgers, disclose the provider,
             retention period, and opt-out steps directly on this page.
           </li>
           <li>
-            Terms of Use: this interface is for demonstration and educational purposes. Custom integrations (e.g., payments or
-            payouts) must follow Pi Network rules, respect user consent, and avoid custodial handling of Pioneer funds.
+            Terms of Use: this interface is for demonstration and educational purposes. Custom integrations (e.g., IOU issuance,
+            payments, or payouts) must follow Pi Network rules, respect user consent, and avoid custodial handling of Pioneer funds.
           </li>
           <li>
             Safety: keep content Pi-friendly, avoid prohibited products, and confirm all third-party APIs use HTTPS with
