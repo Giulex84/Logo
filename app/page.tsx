@@ -415,9 +415,9 @@ export default function Home() {
           <p className="text-sm uppercase tracking-[0.25em] text-piGold">Pi launch checklist</p>
           <h2 className="text-2xl font-semibold">Review-ready items</h2>
           <ol className="list-decimal space-y-3 pl-5 text-sm text-slate-200">
-            <li>Expose <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_VALIDATION_KEY</code> so the build auto-writes <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code>.</li>
+            <li>Add your <strong>validation key</strong> in <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code>.</li>
             <li>Confirm it resolves publicly at <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code> after deployment.</li>
-            <li>Keep <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_SANDBOX</code> on <strong>true</strong> during review; flip to <strong>false</strong> once the official DNS is live.</li>
+            <li>Set <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_SANDBOX</code> to <strong>false</strong> on production.</li>
             <li>Keep copy in English and align with the Pi community developer guide.</li>
           </ol>
           <div className="rounded-xl border border-piGold/60 bg-piGold/10 px-4 py-3 text-sm text-piGold">
@@ -441,7 +441,6 @@ export default function Home() {
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Transactions</p>
               <h2 className="text-xl font-semibold">Send Pi or Test-Pi</h2>
               <p className="text-xs text-slate-300">Callback messages are visible for reviewers—no hidden steps.</p>
-              <p className="text-xs text-slate-400">A mock server approves and completes payments automatically so the Pi Core Team can see the full lifecycle.</p>
             </div>
             <button
               type="button"
@@ -458,7 +457,7 @@ export default function Home() {
           </p>
 
           <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
-            Client-side only by design—pair this UI with your server to log receipts and keep sensitive keys away from the browser. The built-in mock server shows the approval/completion webhooks without exposing real backend secrets.
+            Client-side only by design—pair this UI with your server to log receipts and keep sensitive keys away from the browser.
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
