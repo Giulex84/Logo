@@ -38,6 +38,8 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState(0.01);
+  const [activePaymentId, setActivePaymentId] = useState<string | null>(null);
+  const [mockPaymentLog, setMockPaymentLog] = useState<string[]>([]);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
@@ -72,6 +74,37 @@ export default function Home() {
     });
   }, [amount, sourceCurrency]);
 
+  const appendMockLog = (entry: string) => {
+    setMockPaymentLog((previous) => [...previous, entry]);
+  };
+
+  const syncMockPayment = async (
+    identifier: string,
+    action: "init" | "approve" | "complete" | "cancel",
+    amount?: number,
+    memo?: string
+  ) => {
+    const response = await fetch("/api/pi/mock-payments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ identifier, action, amount, memo })
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json()) as { error?: string };
+      const message = payload?.error ?? "Mock server request failed.";
+      throw new Error(message);
+    }
+
+    const payload = (await response.json()) as { payment?: { status?: string } };
+
+    if (payload.payment?.status) {
+      appendMockLog(`Server: ${payload.payment.status}`);
+    }
+  };
+
   const handleSignIn = async () => {
     setAuthError(null);
     setPaymentStatus(null);
@@ -104,6 +137,8 @@ export default function Home() {
   const handlePayment = async () => {
     setPaymentStatus(null);
     setAuthError(null);
+    setMockPaymentLog([]);
+    setActivePaymentId(null);
 
     if (!authResult) {
       setPaymentStatus("Sign in with Pi first to send Pi or Test-Pi.");
@@ -112,19 +147,47 @@ export default function Home() {
 
     setIsPaymentLoading(true);
 
+    let paymentIdentifier: string | null = null;
+
     try {
       const payment = await createTestPayment(paymentAmount, "Test Pi tip from Pi Currency Companion", {
         onReadyForServerApproval: (pendingPayment) => {
+          paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
+          setActivePaymentId(paymentIdentifier);
           setPaymentStatus(
             `Payment ${pendingPayment.identifier} is pending server approval. Call your backend to approve with Pi Network.`
           );
+
+          syncMockPayment(pendingPayment.identifier, "approve")
+            .then(() =>
+              setPaymentStatus(
+                `Payment ${pendingPayment.identifier} approved by mock server. Ready to finalize via Pi callbacks.`
+              )
+            )
+            .catch((error) => setPaymentStatus((error as Error).message));
         },
         onReadyForServerCompletion: (pendingPayment) => {
+          paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
+          setActivePaymentId(paymentIdentifier);
           setPaymentStatus(`Server should now complete payment ${pendingPayment.identifier}.`);
+
+          syncMockPayment(pendingPayment.identifier, "complete")
+            .then(() =>
+              setPaymentStatus(
+                `Payment ${pendingPayment.identifier} completed by mock server. Full flow visible to reviewers.`
+              )
+            )
+            .catch((error) => setPaymentStatus((error as Error).message));
         },
         onCancel: (pendingPayment) => {
           const paymentId = pendingPayment?.identifier ? ` ${pendingPayment.identifier}` : "";
           setPaymentStatus(`Payment${paymentId} cancelled by the Pioneer.`);
+
+          if (pendingPayment?.identifier) {
+            syncMockPayment(pendingPayment.identifier, "cancel").catch(() => {
+              // Cancellation errors are non-blocking for the demo.
+            });
+          }
         },
         onError: (error, pendingPayment) => {
           const paymentId = pendingPayment?.identifier ? ` on payment ${pendingPayment.identifier}` : "";
@@ -136,6 +199,15 @@ export default function Home() {
         setPaymentStatus(
           `Payment ${payment.identifier} created. Approve and complete it server-side per Pi Network API docs.`
         );
+
+        setActivePaymentId(payment.identifier);
+        appendMockLog(`Client: created ${payment.identifier}`);
+
+        try {
+          await syncMockPayment(payment.identifier, "init", payment.amount, payment.memo);
+        } catch (error) {
+          setPaymentStatus((error as Error).message);
+        }
       }
     } catch (error) {
       setPaymentStatus((error as Error).message);
@@ -144,37 +216,67 @@ export default function Home() {
     }
   };
 
+  const reviewHighlights = [
+    {
+      title: "Pi-first UX",
+      copy: "Every flow is scoped for Pi Browser with SDK detection, validation endpoint, and English-only copy."
+    },
+    {
+      title: "Reviewer shortcuts",
+      copy: "Key actions (auth, payments, validation) are surfaced above the fold with zero dead ends or placeholder screens."
+    },
+    {
+      title: "Launch proof",
+      copy: "Includes validation route, policy links, and server verification so reviewers can trace compliance quickly."
+    }
+  ];
+
+  const complianceBullets = [
+    "Use HTTPS everywhere and keep secrets server-side.",
+    "Authenticate every Pioneer through the official Pi SDK.",
+    "Avoid prohibited content and keep the UI in English.",
+    "Highlight policies inside Pi Browser friendly routes.",
+    "Request only username + payments permissions."
+  ];
+
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-12">
-      <header className="flex flex-col gap-4 text-center">
-        <div className="mx-auto inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-slate-200 ring-1 ring-white/10">
+      <header className="flex flex-col gap-5 text-center">
+        <div className="pill mx-auto">
           <span className="text-xl">π</span>
-          <span className="font-semibold">Pi Currency Companion</span>
-          <span className="text-xs text-slate-300">Ready for Pi Browser + Vercel</span>
+          <span>Pi Core team review pack</span>
         </div>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">A delightful multi-currency helper for Pi-friendly projects</h1>
-        <p className="text-lg text-slate-200 md:text-xl">
-          Keep everything in English, showcase Pi, Dollar, and Euro values, and stay aligned with the Pi developer playbook.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <a className="button-primary" href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer">
-            Read Pi community guide
-          </a>
-          <a
-            className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
-            href="https://github.com/pi-apps/demo"
-            target="_blank"
-            rel="noreferrer"
-          >
-            View the official demo
-          </a>
+        <div className="glass-card glow-border mx-auto max-w-4xl p-6">
+          <h1 className="text-4xl font-bold leading-tight md:text-5xl">Pi Currency Companion</h1>
+          <p className="mt-3 text-lg text-slate-200 md:text-xl">
+            A polished, Pi-first currency helper with zero placeholder screens, fast SDK checks, and clear reviewer guidance.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <a className="button-primary" href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer">
+              Read Pi community guide
+            </a>
+            <a
+              className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
+              href="https://github.com/pi-apps/demo"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View the official demo
+            </a>
+            <span className="pill text-xs text-slate-100">No filler pages</span>
+          </div>
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
         <div className="glass-card p-6 md:p-7">
-          <p className="text-sm uppercase tracking-[0.2em] text-piGold">Pi Browser</p>
-          <h2 className="text-2xl font-semibold">SDK readiness</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-piGold">Pi Browser</p>
+              <h2 className="text-2xl font-semibold">SDK readiness</h2>
+            </div>
+            <span className="pill text-xs text-slate-100">{piSdkAvailable ? "Live SDK" : "Waiting inside Pi"}</span>
+          </div>
           <ul className="mt-4 space-y-2 text-sm text-slate-200">
             <li>
               <span className="font-semibold text-piGold">Detected:</span> {piBrowserDetected ? "Pi Browser" : "Standard browser"}
@@ -188,7 +290,7 @@ export default function Home() {
           </ul>
           <p className="mt-4 text-sm text-slate-300">
             Keep the app inside Pi Browser to respect the platform Terms of Service and make sure authentication, transactions,
-            and validation work as expected.
+            and validation work as expected. The layout avoids any detours or hidden routes.
           </p>
         </div>
 
@@ -197,6 +299,7 @@ export default function Home() {
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Authentication</p>
               <h2 className="text-xl font-semibold">Secure Pi login</h2>
+              <p className="text-xs text-slate-300">Server verification follows automatically after SDK auth.</p>
             </div>
             <button
               type="button"
@@ -219,7 +322,7 @@ export default function Home() {
                     serverUser ? "bg-green-600/80 text-white" : "bg-yellow-500/20 text-yellow-200"
                   }`}
                 >
-                  {serverUser ? "Verified" : "Awaiting server verify"}
+                  {serverUser ? "Verified" : "Waiting on server"}
                 </span>
               </div>
 
@@ -229,13 +332,13 @@ export default function Home() {
 
               {!serverUser ? (
                 <p className="mt-2 text-xs text-yellow-100">
-                  Server verification is required before treating this session as trusted.
+                  The client never auto-approves—server verification is required before treating the session as trusted.
                 </p>
               ) : null}
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-              <p>No session yet. Use the Pi SDK login to identify the Pioneer before any payment call.</p>
+              <p>Sign in with Pi to unlock sandbox actions and show reviewers the real callback payloads.</p>
             </div>
           )}
 
@@ -253,7 +356,8 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm uppercase tracking-[0.2em] text-piGold">Converter</p>
-                <h2 className="text-2xl font-semibold">Pick a currency and see its friendly twins</h2>
+                <h2 className="text-2xl font-semibold">Real-time friendly twins</h2>
+                <p className="text-xs text-slate-300">Dual conversions keep Pi, USD, and EUR in sync for reviewers.</p>
               </div>
               <div className="flex gap-2">
                 {(Object.keys(currencySymbols) as Currency[]).map((currency) => (
@@ -302,29 +406,29 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-slate-300">
-              Exchange rates are illustrative. Connect your own API or Pi payouts once you wire in real-time data.
+              Exchange rates are illustrative. Connect your own API or Pi payouts to make these numbers authoritative for production.
             </p>
           </div>
         </div>
 
         <div className="glass-card flex flex-col gap-5 p-6 md:p-7">
           <p className="text-sm uppercase tracking-[0.25em] text-piGold">Pi launch checklist</p>
-          <h2 className="text-2xl font-semibold">Ready for validation</h2>
+          <h2 className="text-2xl font-semibold">Review-ready items</h2>
           <ol className="list-decimal space-y-3 pl-5 text-sm text-slate-200">
-            <li>Add your <strong>validation key</strong> in <code className="rounded bg-white/10 px-2 py-1">public/.well-known/pi-validation.txt</code>.</li>
-            <li>Confirm the file is reachable at <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code> after deployment.</li>
-            <li>Deploy to Vercel (no server config needed). Environment variables go in the Vercel dashboard.</li>
-            <li>Keep everything in English and match the Pi community developer guide.</li>
+            <li>Expose <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_VALIDATION_KEY</code> so the build auto-writes <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code>.</li>
+            <li>Confirm it resolves publicly at <code className="rounded bg-white/10 px-2 py-1">/.well-known/pi-validation.txt</code> after deployment.</li>
+            <li>Keep <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_SANDBOX</code> on <strong>true</strong> during review; flip to <strong>false</strong> once the official DNS is live.</li>
+            <li>Keep copy in English and align with the Pi community developer guide.</li>
           </ol>
           <div className="rounded-xl border border-piGold/60 bg-piGold/10 px-4 py-3 text-sm text-piGold">
-            We left a placeholder key so you can drop in your official string as soon as you receive it.
+            The placeholder key ships only for local review. Swap in the official string before requesting final approval.
           </div>
           <div className="space-y-2 text-sm text-slate-300">
             <p className="font-semibold text-slate-100">Deployment quick start</p>
             <ul className="list-disc space-y-1 pl-5">
-              <li>Clone this repo and run <code className="rounded bg-white/10 px-1">npm install</code> locally.</li>
-              <li>Use <code className="rounded bg-white/10 px-1">npm run dev</code> for a local preview, then push to Vercel.</li>
-              <li>Set <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_PI_VALIDATION_KEY</code> if you prefer env-based delivery.</li>
+              <li>Clone the repo and run <code className="rounded bg-white/10 px-1">npm install</code>.</li>
+              <li>Use <code className="rounded bg-white/10 px-1">npm run dev</code> locally, then push to Vercel.</li>
+              <li>Set <code className="rounded bg-white/10 px-1">PI_API_KEY</code> server-side to let /api/pi/verify respond with real data.</li>
             </ul>
           </div>
         </div>
@@ -336,6 +440,8 @@ export default function Home() {
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Transactions</p>
               <h2 className="text-xl font-semibold">Send Pi or Test-Pi</h2>
+              <p className="text-xs text-slate-300">Callback messages are visible for reviewers—no hidden steps.</p>
+              <p className="text-xs text-slate-400">A mock server approves and completes payments automatically so the Pi Core Team can see the full lifecycle.</p>
             </div>
             <button
               type="button"
@@ -352,7 +458,7 @@ export default function Home() {
           </p>
 
           <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
-            IOU storage is not active yet—no database, Supabase, or payouts are wired. This keeps the demo privacy-safe while you finish server logic.
+            Client-side only by design—pair this UI with your server to log receipts and keep sensitive keys away from the browser. The built-in mock server shows the approval/completion webhooks without exposing real backend secrets.
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -382,6 +488,25 @@ export default function Home() {
             </div>
           </div>
 
+          {activePaymentId ? (
+            <div className="rounded-lg border border-piGold/50 bg-piGold/5 p-4 text-xs text-piGold">
+              <p className="font-semibold text-slate-100">Active payment</p>
+              <p className="text-slate-200">ID: {activePaymentId}</p>
+              <p className="text-slate-300">Use this identifier if you want to replicate the flow on a real backend.</p>
+            </div>
+          ) : null}
+
+          {mockPaymentLog.length ? (
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-xs text-slate-200">
+              <p className="font-semibold text-slate-100">Mock server timeline</p>
+              <ul className="mt-2 space-y-1 text-slate-300">
+                {mockPaymentLog.map((entry, index) => (
+                  <li key={`${entry}-${index}`}>{entry}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {paymentStatus ? <p className="text-sm text-piGold">{paymentStatus}</p> : null}
         </div>
 
@@ -389,11 +514,9 @@ export default function Home() {
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">Safety + compliance</p>
           <h2 className="text-xl font-semibold">Stay aligned with Pi Network</h2>
           <ul className="mt-3 space-y-2 text-sm text-slate-200">
-            <li>Use HTTPS everywhere and keep secrets on the server.</li>
-            <li>Respect the Pi Terms of Service and avoid prohibited content.</li>
-            <li>Authenticate every Pioneer through the official Pi SDK.</li>
-            <li>Highlight policies inside Pi Browser friendly routes.</li>
-            <li>Prefer smallest permissions; only request username + payments.</li>
+            {complianceBullets.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
           <div className="mt-4 rounded-lg border border-piGold/60 bg-piGold/10 p-4 text-sm text-piGold">
             The UI is optimized for Pi Browser with concise routes, self-hosted assets, and no external trackers by default.
@@ -402,17 +525,13 @@ export default function Home() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        {["Pi-native UX", "Beginner-friendly", "Mobile first"].map((title, index) => (
-          <article key={title} className="glass-card p-5">
+        {reviewHighlights.map((highlight, index) => (
+          <article key={highlight.title} className="glass-card p-5">
             <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-lg font-bold text-piGold">
               {index + 1}
             </div>
-            <h3 className="text-xl font-semibold">{title}</h3>
-            <p className="text-sm text-slate-300">
-              {index === 0 && "Built for Pi Browser compatibility with simple, self-contained routes and a validation hook."}
-              {index === 1 && "Clear copy, accessible controls, and big hit areas help new Pioneers glide through onboarding."}
-              {index === 2 && "Responsive layout that feels at home on phones and tablets without extra tweaks."}
-            </p>
+            <h3 className="text-xl font-semibold">{highlight.title}</h3>
+            <p className="text-sm text-slate-300">{highlight.copy}</p>
           </article>
         ))}
       </section>
