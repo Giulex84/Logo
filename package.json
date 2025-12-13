@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/generate-validation-file.mjs",
+    "prebuild": "node scripts/generate-validation-file.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
