@@ -299,7 +299,7 @@ export default function Home() {
   const paymentId = pendingPayment?.identifier
     ? ` on payment ${pendingPayment.identifier}`
     : "";
-  setPaymentStatus(`Error${paymentId}: ${String(error)}`);
+  setPaymentStatus(`Error${paymentId}: ${String(error)}`
 },
 
       if (payment?.identifier) {
