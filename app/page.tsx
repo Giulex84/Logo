@@ -292,7 +292,7 @@ export default function Home() {
           if (pendingPayment?.identifier) {
             syncMockPayment(pendingPayment.identifier, "cancel").catch(() => {
               // Cancellation errors are non-blocking for the demo.
-            });
+            }
           }
         },
         onError: (error, pendingPayment) => {
