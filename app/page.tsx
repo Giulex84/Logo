@@ -134,7 +134,7 @@ export default function Home() {
     }
   };
 
-  const handlePayment = async () => {
+  const handleSettleIou = async () => {
     setPaymentStatus(null);
     setAuthError(null);
     setMockPaymentLog([]);
@@ -444,7 +444,7 @@ export default function Home() {
             </div>
             <button
               type="button"
-              onClick={handlePayment}
+              onClick={handleSettleIou}
               disabled={isPaymentLoading}
               className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:ring-piGold/80 disabled:cursor-not-allowed disabled:opacity-60"
             >
