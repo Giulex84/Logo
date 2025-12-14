@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pi Currency Companion",
-  description: "Simple Pi-friendly currency app with Pi, Dollar, and Euro values.",
-  applicationName: "Pi Currency Companion",
-  keywords: ["Pi", "Pi Network", "currency", "finance", "Next.js"],
+  title: "Pi IOU",
+  description: "Crea, condividi e paga IOU in Pi con un flusso chiaro per utenti reali.",
+  applicationName: "Pi IOU",
+  keywords: ["Pi", "Pi Network", "IOU", "debiti", "Next.js"],
   metadataBase: new URL("https://iou4088.pi"),
   openGraph: {
-    title: "Pi Currency Companion",
-    description: "A friendly Pi app for quick currency guidance.",
+    title: "Pi IOU",
+    description: "Segna un debito e saldalo in Pi con una UI pensata per le persone.",
     url: "https://iou4088.pi",
-    siteName: "Pi Currency Companion"
+    siteName: "Pi IOU"
   }
 };
 
