@@ -301,7 +301,6 @@ export default function Home() {
     : "";
   setPaymentStatus(`Error${paymentId}: ${String(error)}`
 },
-      });
 
       if (payment?.identifier) {
         setPaymentStatus(
