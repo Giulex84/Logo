@@ -229,6 +229,8 @@ export default function Home() {
     setMockPaymentLog([]);
     setActivePaymentId(null);
 
+    let paymentIdentifier: string | null = null;
+
     try {
       const payment = await createTestPayment(
         iou.amount,
@@ -287,6 +289,15 @@ export default function Home() {
         setPaymentStatus(
           `Payment ${payment.identifier} created. Mock server will approve and complete for reviewers automatically.`
         );
+
+        setActivePaymentId(payment.identifier);
+        appendMockLog(`Client: created ${payment.identifier}`);
+
+        try {
+          await syncMockPayment(payment.identifier, "init", payment.amount, payment.memo);
+        } catch (error) {
+          setPaymentStatus((error as Error).message);
+        }
       }
     } catch (error) {
       setPaymentStatus((error as Error).message);
@@ -336,6 +347,54 @@ export default function Home() {
             <span className="pill text-xs text-slate-100">No dead screens</span>
             <span className="pill text-xs text-slate-100">Mock payments ready</span>
             <span className="pill text-xs text-slate-100">English-first copy</span>
+  const reviewHighlights = [
+    {
+      title: "Pi-first UX",
+      copy: "Every flow is scoped for Pi Browser with SDK detection, validation endpoint, and English-only copy."
+    },
+    {
+      title: "Reviewer shortcuts",
+      copy: "Key actions (auth, payments, validation) are surfaced above the fold with zero dead ends or placeholder screens."
+    },
+    {
+      title: "Launch proof",
+      copy: "Includes validation route, policy links, and server verification so reviewers can trace compliance quickly."
+    }
+  ];
+
+  const complianceBullets = [
+    "Use HTTPS everywhere and keep secrets server-side.",
+    "Authenticate every Pioneer through the official Pi SDK.",
+    "Avoid prohibited content and keep the UI in English.",
+    "Highlight policies inside Pi Browser friendly routes.",
+    "Request only username + payments permissions."
+  ];
+
+  return (
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-12">
+      <header className="flex flex-col gap-5 text-center">
+        <div className="pill mx-auto">
+          <span className="text-xl">π</span>
+          <span>Pi Core team review pack</span>
+        </div>
+        <div className="glass-card glow-border mx-auto max-w-4xl p-6">
+          <h1 className="text-4xl font-bold leading-tight md:text-5xl">Pi Currency Companion</h1>
+          <p className="mt-3 text-lg text-slate-200 md:text-xl">
+            A polished, Pi-first currency helper with zero placeholder screens, fast SDK checks, and clear reviewer guidance.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <a className="button-primary" href="https://pi-apps.github.io/community-developer-guide" target="_blank" rel="noreferrer">
+              Read Pi community guide
+            </a>
+            <a
+              className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
+              href="https://github.com/pi-apps/demo"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View the official demo
+            </a>
+            <span className="pill text-xs text-slate-100">No filler pages</span>
           </div>
         </div>
       </header>
@@ -418,8 +477,7 @@ export default function Home() {
                 <p>ID: {(serverUser ?? authResult.user)?.uid}</p>
                 <p>Username: {(serverUser ?? authResult.user)?.username}</p>
                 <p>Roles: {(serverUser ?? authResult.user)?.roles.join(", ") || "n/a"}</p>
-                <p className="mt-2 text-xs text-yellow-100">
-                  Pi auth + payments are the only identity and settlement channels. No custom wallets, no placeholders.
+                <p className="mt-2 text-xs text-yellow-100">                  Pi auth + payments are the only identity and settlement channels. No custom wallets, no placeholders.
                 </p>
               </div>
             ) : (
