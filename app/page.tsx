@@ -296,10 +296,12 @@ export default function Home() {
           }
         },
         onError: (error, pendingPayment) => {
-          const paymentId = pendingPayment?.identifier ? ` on payment ${pendingPayment.identifier}` : "";
-          setPaymentStatus(`Error${paymentId}: ${String(error)}`);
-        }
-      );
+  const paymentId = pendingPayment?.identifier
+    ? ` on payment ${pendingPayment.identifier}`
+    : "";
+  setPaymentStatus(`Error${paymentId}: ${String(error)}`);
+},
+
       if (payment?.identifier) {
         setPaymentStatus(
           `Payment ${payment.identifier} created. Approve and complete it server-side per Pi Network API docs.`
