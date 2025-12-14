@@ -134,7 +134,7 @@ export default function Home() {
     }
   };
 
-  const handlePayment = async () => {
+  const handleSettleIou = async () => {
     setPaymentStatus(null);
     setAuthError(null);
     setMockPaymentLog([]);
@@ -149,51 +149,59 @@ export default function Home() {
 
     let paymentIdentifier: string | null = null;
 
-    try {
-      const payment = await createTestPayment(paymentAmount, "Test Pi tip from Pi Currency Companion", {
-        onReadyForServerApproval: (pendingPayment) => {
-          paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
-          setActivePaymentId(paymentIdentifier);
+    const paymentCallbacks = {
+      onReadyForServerApproval: async (pendingPayment: { identifier: string }) => {
+        paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
+        setActivePaymentId(paymentIdentifier);
+        setPaymentStatus(
+          `Payment ${pendingPayment.identifier} is pending server approval. Call your backend to approve with Pi Network.`
+        );
+
+        try {
+          await syncMockPayment(pendingPayment.identifier, "approve");
           setPaymentStatus(
-            `Payment ${pendingPayment.identifier} is pending server approval. Call your backend to approve with Pi Network.`
+            `Payment ${pendingPayment.identifier} approved by mock server. Ready to finalize via Pi callbacks.`
           );
-
-          syncMockPayment(pendingPayment.identifier, "approve")
-            .then(() =>
-              setPaymentStatus(
-                `Payment ${pendingPayment.identifier} approved by mock server. Ready to finalize via Pi callbacks.`
-              )
-            )
-            .catch((error) => setPaymentStatus((error as Error).message));
-        },
-        onReadyForServerCompletion: (pendingPayment) => {
-          paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
-          setActivePaymentId(paymentIdentifier);
-          setPaymentStatus(`Server should now complete payment ${pendingPayment.identifier}.`);
-
-          syncMockPayment(pendingPayment.identifier, "complete")
-            .then(() =>
-              setPaymentStatus(
-                `Payment ${pendingPayment.identifier} completed by mock server. Full flow visible to reviewers.`
-              )
-            )
-            .catch((error) => setPaymentStatus((error as Error).message));
-        },
-        onCancel: (pendingPayment) => {
-          const paymentId = pendingPayment?.identifier ? ` ${pendingPayment.identifier}` : "";
-          setPaymentStatus(`Payment${paymentId} cancelled by the Pioneer.`);
-
-          if (pendingPayment?.identifier) {
-            syncMockPayment(pendingPayment.identifier, "cancel").catch(() => {
-              // Cancellation errors are non-blocking for the demo.
-            });
-          }
-        },
-        onError: (error, pendingPayment) => {
-          const paymentId = pendingPayment?.identifier ? ` on payment ${pendingPayment.identifier}` : "";
-          setPaymentStatus(`Error${paymentId}: ${String(error)}`);
+        } catch (error) {
+          setPaymentStatus((error as Error).message);
         }
-      });
+      },
+      onReadyForServerCompletion: async (pendingPayment: { identifier: string }) => {
+        paymentIdentifier = pendingPayment?.identifier ?? paymentIdentifier;
+        setActivePaymentId(paymentIdentifier);
+        setPaymentStatus(`Server should now complete payment ${pendingPayment.identifier}.`);
+
+        try {
+          await syncMockPayment(pendingPayment.identifier, "complete");
+          setPaymentStatus(
+            `Payment ${pendingPayment.identifier} completed by mock server. Full flow visible to reviewers.`
+          );
+        } catch (error) {
+          setPaymentStatus((error as Error).message);
+        }
+      },
+      onCancel: (pendingPayment?: { identifier?: string }) => {
+        const paymentId = pendingPayment?.identifier ? ` ${pendingPayment.identifier}` : "";
+        setPaymentStatus(`Payment${paymentId} cancelled by the Pioneer.`);
+
+        if (pendingPayment?.identifier) {
+          syncMockPayment(pendingPayment.identifier, "cancel").catch(() => {
+            // Cancellation errors are non-blocking for the demo.
+          });
+        }
+      },
+      onError: (error: unknown, pendingPayment?: { identifier?: string }) => {
+        const paymentId = pendingPayment?.identifier ? ` on payment ${pendingPayment.identifier}` : "";
+        setPaymentStatus(`Error${paymentId}: ${String(error)}`);
+      }
+    };
+
+    try {
+      const payment = await createTestPayment(
+        paymentAmount,
+        "Test Pi tip from Pi Currency Companion",
+        paymentCallbacks
+      );
 
       if (payment?.identifier) {
         setPaymentStatus(
@@ -444,7 +452,7 @@ export default function Home() {
             </div>
             <button
               type="button"
-              onClick={handlePayment}
+              onClick={handleSettleIou}
               disabled={isPaymentLoading}
               className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:ring-piGold/80 disabled:cursor-not-allowed disabled:opacity-60"
             >
