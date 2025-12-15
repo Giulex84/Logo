@@ -28,6 +28,20 @@ type Iou = {
   cancelledAt?: string;
 };
 
+type ApiIou = {
+  id?: string | number;
+  pi_uid: string;
+  direction: IouDirection;
+  counterparty: string;
+  amount: number;
+  note?: string | null;
+  status: IouStatus;
+  created_at: string;
+  accepted_at?: string | null;
+  paid_at?: string | null;
+  cancelled_at?: string | null;
+};
+
 const statusLabels: Record<IouStatus, string> = {
   pending: "🕓 Pending",
   accepted: "🤝 Accepted",
@@ -84,6 +98,21 @@ function formatDate(value?: string) {
   });
 }
 
+function mapApiIouToClient(apiIou: ApiIou): Iou {
+  return {
+    id: String(apiIou.id ?? `${apiIou.pi_uid}-${apiIou.created_at}`),
+    amount: apiIou.amount,
+    counterparty: apiIou.counterparty,
+    note: apiIou.note ?? undefined,
+    status: apiIou.status,
+    direction: apiIou.direction,
+    createdAt: apiIou.created_at,
+    acceptedAt: apiIou.accepted_at ?? undefined,
+    paidAt: apiIou.paid_at ?? undefined,
+    cancelledAt: apiIou.cancelled_at ?? undefined
+  };
+}
+
 export default function Home() {
   const [piBrowserDetected, setPiBrowserDetected] = useState(false);
   const [piSdkAvailable, setPiSdkAvailable] = useState(false);
@@ -105,6 +134,48 @@ export default function Home() {
   const [formCounterparty, setFormCounterparty] = useState<string>("");
   const [formNote, setFormNote] = useState<string>("");
   const [formDueDate, setFormDueDate] = useState<string>("");
+
+  const replaceIousWithPersisted = (items: Iou[]) => {
+    if (!items.length) return;
+
+    setIous(items);
+    setSelectedIouId(items[0]?.id ?? null);
+  };
+
+  const fetchPersistedIous = async (piUid: string) => {
+    try {
+      const response = await fetch(`/api/ious/list?pi_uid=${encodeURIComponent(piUid)}`);
+
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = (await response.json()) as ApiIou[] | null;
+
+      if (Array.isArray(payload) && payload.length) {
+        replaceIousWithPersisted(payload.map((item) => mapApiIouToClient(item)));
+      }
+    } catch {
+      // Fallback to placeholders on network errors.
+    }
+  };
+
+  const upsertPiUser = async (user: PiAuthResult["user"]) => {
+    try {
+      await fetch("/api/users/upsert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          pi_uid: user.uid,
+          pi_username: user.username
+        })
+      });
+    } catch {
+      // Keep UI responsive even if persistence fails.
+    }
+  };
 
   useEffect(() => {
     const { sdk, isPiBrowser } = detectPiSdk();
@@ -185,6 +256,9 @@ export default function Home() {
       setAuthResult(auth);
       setServerUser(verification.user);
       setPiStatus("Pi session confirmed by the server.");
+
+      await upsertPiUser(verification.user);
+      await fetchPersistedIous(verification.user.uid);
     } catch (error) {
       setAuthError((error as Error).message);
       setAuthResult(null);
@@ -194,7 +268,7 @@ export default function Home() {
     }
   };
 
-  const handleCreateIou = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateIou = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const amount = Number(formAmount);
 
@@ -213,6 +287,45 @@ export default function Home() {
       direction: "outgoing",
       createdAt: new Date().toISOString()
     };
+
+    const piUser = serverUser ?? authResult?.user ?? null;
+
+    if (piUser) {
+      try {
+        const response = await fetch("/api/ious/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            pi_uid: piUser.uid,
+            direction: newIou.direction,
+            counterparty: newIou.counterparty,
+            amount: newIou.amount,
+            note: newIou.note
+          })
+        });
+
+        if (response.ok) {
+          const payload = (await response.json()) as ApiIou | null;
+
+          if (payload) {
+            const persisted = mapApiIouToClient(payload);
+            setIous((previous) => [persisted, ...previous]);
+            setSelectedIouId(persisted.id);
+            setView("detail");
+            setFormAmount("");
+            setFormCounterparty("");
+            setFormNote("");
+            setFormDueDate("");
+            setPaymentStatus("IOU created. No Pi moves until you pay.");
+            return;
+          }
+        }
+      } catch {
+        // Fallback to placeholder creation when the API is unavailable.
+      }
+    }
 
     setIous((previous) => [newIou, ...previous]);
     setSelectedIouId(newIou.id);
