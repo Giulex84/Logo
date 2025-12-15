@@ -194,7 +194,7 @@ export default function Home() {
     }
   };
 
-  const handleCreateIou = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateIou = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const amount = Number(formAmount);
 
@@ -203,25 +203,69 @@ export default function Home() {
       return;
     }
 
-    const newIou: Iou = {
-      id: `iou-${Date.now()}`,
-      amount,
-      counterparty: formCounterparty.trim(),
-      note: formNote.trim() || undefined,
-      dueDate: formDueDate || undefined,
-      status: "pending",
-      direction: "outgoing",
-      createdAt: new Date().toISOString()
-    };
+    const piUid = (serverUser ?? authResult?.user)?.uid ?? "pi-sandbox-user";
 
-    setIous((previous) => [newIou, ...previous]);
-    setSelectedIouId(newIou.id);
-    setView("detail");
-    setFormAmount("");
-    setFormCounterparty("");
-    setFormNote("");
-    setFormDueDate("");
-    setPaymentStatus("IOU created. No Pi moves until you pay.");
+    try {
+      const response = await fetch("/api/ious/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          pi_uid: piUid,
+          direction: "outgoing",
+          counterparty: formCounterparty.trim(),
+          amount,
+          note: formNote.trim() || null,
+          due_date: formDueDate || null
+        })
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        const message = payload?.error ?? "Unable to create IOU.";
+        throw new Error(message);
+      }
+
+      const created = (await response.json()) as {
+        id: string;
+        amount: number;
+        counterparty: string;
+        note?: string | null;
+        due_date?: string | null;
+        status?: IouStatus;
+        direction?: IouDirection;
+        created_at?: string;
+        accepted_at?: string | null;
+        paid_at?: string | null;
+        cancelled_at?: string | null;
+      };
+
+      const newIou: Iou = {
+        id: created.id,
+        amount: created.amount,
+        counterparty: created.counterparty,
+        note: created.note ?? undefined,
+        dueDate: created.due_date ?? undefined,
+        status: created.status ?? "pending",
+        direction: created.direction ?? "outgoing",
+        createdAt: created.created_at ?? new Date().toISOString(),
+        acceptedAt: created.accepted_at ?? undefined,
+        paidAt: created.paid_at ?? undefined,
+        cancelledAt: created.cancelled_at ?? undefined
+      };
+
+      setIous((previous) => [newIou, ...previous]);
+      setSelectedIouId(newIou.id);
+      setView("detail");
+      setFormAmount("");
+      setFormCounterparty("");
+      setFormNote("");
+      setFormDueDate("");
+      setPaymentStatus("IOU created. No Pi moves until you pay.");
+    } catch (error) {
+      setPaymentStatus(error instanceof Error ? error.message : "Unable to create IOU.");
+    }
   };
 
   const handleAcceptIou = (id: string) => {
