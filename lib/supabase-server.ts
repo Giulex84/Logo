@@ -12,12 +12,7 @@ export function getSupabaseServerClient() {
     throw new Error("Supabase environment variables are not fully configured.");
   }
 
-  cachedClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
+  cachedClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   return cachedClient;
 }
