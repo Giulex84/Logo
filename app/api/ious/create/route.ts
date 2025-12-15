@@ -31,20 +31,24 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseServerClient();
 
+  const payload = {
+    pi_uid,
+    direction,
+    counterparty,
+    amount,
+    note,
+    status: "pending"
+  };
+
   const { data, error } = await supabase
     .from("ious")
-    .insert({
-      pi_uid,
-      direction,
-      counterparty,
-      amount,
-      note,
-      status: "pending"
-    });
+    .insert(payload);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data?.[0] ?? null);
+  const inserted = Array.isArray(data) ? data[0] : data;
+
+  return NextResponse.json(inserted ? { ...payload, ...inserted } : payload);
 }
