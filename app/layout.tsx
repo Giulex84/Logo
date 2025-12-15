@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Pi IOU",
-  description: "Record a promise now. Settle in Pi later if you choose.",
+  description: "Promise now and settle in Pi with a simple, clear flow.",
   applicationName: "Pi IOU",
   keywords: ["Pi", "Pi Network", "IOU", "promises", "Next.js"],
   metadataBase: new URL("https://iou4088.pi"),

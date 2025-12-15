@@ -402,18 +402,18 @@ export default function Home() {
     >
       <header className="flex flex-col gap-4 text-center">
         <p className="text-sm uppercase tracking-[0.2em] text-piGold">IOU App</p>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">💸 Record a promise now. Settle in Pi later if you choose.</h1>
+        <h1 className="text-4xl font-bold leading-tight md:text-5xl">💸 Promise now. Settle later in Pi.</h1>
         <p className="text-lg text-slate-200 md:text-xl">
-          Log it now and settle in Pi only when you approve.
+          Create a promise, share it, and pay in Pi only when you choose.
         </p>
-        <p className="text-sm text-slate-300">An IOU just records the agreement; no Pi moves until payment.</p>
+        <p className="text-sm text-slate-300">An IOU is a simple promise between two people.</p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => setView("create")}
             className="button-primary"
           >
-            ➕ Record a promise
+            ➕ Create a promise
           </button>
           <button
             type="button"
