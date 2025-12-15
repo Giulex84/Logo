@@ -144,11 +144,13 @@ export default function Home() {
     setSelectedIouId(items[0]?.id ?? null);
   };
 
-  const fetchPersistedIous = async (piUid: string) => {
-    setIsIousLoading(true);
+  const fetchPersistedIous = async (piUid?: string) => {
+    const targetPiUid = piUid ?? serverUser?.uid ?? authResult?.user?.uid;
+
+    if (!targetPiUid) return;
 
     try {
-      const response = await fetch(`/api/ious/list?pi_uid=${encodeURIComponent(piUid)}`);
+      const response = await fetch(`/api/ious/list?pi_uid=${encodeURIComponent(targetPiUid)}`);
 
       if (!response.ok) {
         return;
