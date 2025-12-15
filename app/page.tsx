@@ -488,7 +488,7 @@ export default function Home() {
           }}
           className="rounded-lg border border-white/20 px-3 py-2 font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
         >
-          Open details
+          Open promise
         </button>
         {iou.status === "pending" && iou.direction === "incoming" ? (
           <>
@@ -548,7 +548,7 @@ export default function Home() {
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Pi Browser</p>
               <h2 className="text-2xl font-semibold">Ready to settle</h2>
-              <p className="text-sm text-slate-300">We check automatically if you are in Pi Browser.</p>
+              <p className="text-sm text-slate-300">We automatically check if you are in Pi Browser.</p>
             </div>
             <span className="pill text-xs text-slate-100">{piSdkAvailable ? "Active" : "Waiting"}</span>
           </div>
@@ -570,7 +570,7 @@ export default function Home() {
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Sign in</p>
               <h2 className="text-xl font-semibold">Sign in with Pi</h2>
-              <p className="text-xs text-slate-300">Keep promises tied to you.</p>
+              <p className="text-xs text-slate-300">Link promises to your Pi identity.</p>
             </div>
             <button
               type="button"
@@ -602,7 +602,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-              <p>Sign in to link promises to your Pi profile.</p>
+              <p>Sign in to keep promises tied to you.</p>
             </div>
           )}
 
@@ -613,11 +613,11 @@ export default function Home() {
       <section className="glass-card grid gap-6 p-6 md:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">What is an IOU</p>
-          <h2 className="text-2xl font-semibold">A promise you settle in Pi</h2>
+          <h2 className="text-2xl font-semibold">A promise you can settle later</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-200">
             <li>State who pays whom, how much, and why.</li>
-            <li>Creating it does not move Pi: it is only a record.</li>
-            <li>Pay later in Pi when you decide.</li>
+            <li>Creating it only records the agreement; no Pi moves.</li>
+            <li>Settle in Pi later when you approve.</li>
           </ul>
           <p className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
             States: {statusLabels.pending}, {statusLabels.accepted}, {statusLabels.paid}, {statusLabels.cancelled}.
@@ -695,11 +695,11 @@ export default function Home() {
           <h2 className="text-xl font-semibold">Agree, decline, settle</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-200">
             <li>The receiver can accept or decline.</li>
-            <li>Accepting signals agreement; no Pi moves.</li>
+            <li>Acceptance records agreement; Pi stays put.</li>
             <li>To settle, open the detail and press 💰 Settle in Pi.</li>
           </ul>
           <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-            Settling pays the agreed amount only when you confirm.
+            Settling pays the amount only after you confirm.
           </div>
         </div>
       </section>
@@ -708,7 +708,7 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-piGold">My IOUs</p>
-            <h2 className="text-2xl font-semibold">Quick overview</h2>
+            <h2 className="text-2xl font-semibold">Your promises</h2>
           </div>
           <div className="flex gap-2 text-sm">
             <button
@@ -716,7 +716,7 @@ export default function Home() {
               onClick={() => setView("create")}
               className="rounded-lg border border-white/20 px-3 py-2 font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
             >
-              ➕ Create
+              ➕ New promise
             </button>
             <button
               type="button"
@@ -724,7 +724,7 @@ export default function Home() {
               disabled={!selectedIou}
               className="rounded-lg border border-white/20 px-3 py-2 font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Open selected
+              Open promise
             </button>
           </div>
         </div>
@@ -784,7 +784,7 @@ export default function Home() {
               ) : null}
             </div>
             <p className="text-sm text-slate-300">
-              Settling pays {selectedIou.amount} Pi to {selectedIou.counterparty} only when you confirm.
+              Settling pays {selectedIou.amount} Pi to {selectedIou.counterparty} only after you approve.
             </p>
           </div>
 

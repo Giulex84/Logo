@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://iou4088.pi"),
   openGraph: {
     title: "Pi IOU",
-    description: "Log a promise and settle it in Pi with a calm, clear UI.",
+    description: "Log a promise now and settle it in Pi when you approve.",
     url: "https://iou4088.pi",
     siteName: "Pi IOU"
   }
