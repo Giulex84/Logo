@@ -329,7 +329,7 @@ export default function Home() {
         setPaymentStatus(`Payment ${payment.identifier} created. Follow the server prompts.`);
 
         setActivePaymentId(payment.identifier);
-        appendMockLog(`Cliente: creato ${payment.identifier}`);
+        appendMockLog(`Client: created ${payment.identifier}`);
 
         try {
           await syncMockPayment(payment.identifier, "init", payment.amount, payment.memo);
@@ -490,14 +490,6 @@ export default function Home() {
           )}
 
           {authError ? <p className="text-sm text-red-300">{authError}</p> : null}
-        </div>
-        <div className="space-y-3 rounded-2xl border border-piGold/30 bg-piGold/10 p-5 text-sm text-piGold">
-          <p className="font-semibold text-slate-100">Esempio di dettaglio</p>
-          <p className="text-lg font-bold text-slate-100">10 Pi</p>
-          <p className="text-slate-100">Da pagare a Luca</p>
-          <p className="text-slate-100">Stato: {statusLabels.pending}</p>
-          <p className="text-slate-100">Motivo: Cena di ieri</p>
-          <p className="text-slate-100">Scadenza: {formatDate(placeholderIous[0]?.dueDate)}</p>
         </div>
       </section>
 
