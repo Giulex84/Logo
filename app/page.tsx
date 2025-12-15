@@ -35,6 +35,7 @@ type ApiIou = {
   counterparty: string;
   amount: number;
   note?: string | null;
+  due_date?: string | null;
   status: IouStatus;
   created_at: string;
   accepted_at?: string | null;
@@ -104,6 +105,7 @@ function mapApiIouToClient(apiIou: ApiIou): Iou {
     amount: apiIou.amount,
     counterparty: apiIou.counterparty,
     note: apiIou.note ?? undefined,
+    dueDate: apiIou.due_date ?? undefined,
     status: apiIou.status,
     direction: apiIou.direction,
     createdAt: apiIou.created_at,
@@ -297,64 +299,54 @@ export default function Home() {
       return;
     }
 
-    const newIou: Iou = {
-      id: `iou-${Date.now()}`,
-      amount,
-      counterparty: formCounterparty.trim(),
-      note: formNote.trim() || undefined,
-      dueDate: formDueDate || undefined,
-      status: "pending",
-      direction: "outgoing",
-      createdAt: new Date().toISOString()
-    };
-
     const piUser = serverUser ?? authResult?.user ?? null;
 
-    if (piUser) {
-      try {
-        const response = await fetch("/api/ious/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            pi_uid: piUser.uid,
-            direction: newIou.direction,
-            counterparty: newIou.counterparty,
-            amount: newIou.amount,
-            note: newIou.note
-          })
-        });
-
-        if (response.ok) {
-          const payload = (await response.json()) as ApiIou | null;
-
-          if (payload) {
-            const persisted = mapApiIouToClient(payload);
-            setIous((previous) => [persisted, ...previous]);
-            setSelectedIouId(persisted.id);
-            setView("detail");
-            setFormAmount("");
-            setFormCounterparty("");
-            setFormNote("");
-            setFormDueDate("");
-            setPaymentStatus("IOU created. No Pi moves until you pay.");
-            return;
-          }
-        }
-      } catch {
-        // Fallback to placeholder creation when the API is unavailable.
-      }
+    if (!piUser) {
+      setPaymentStatus("Sign in with Pi before creating the IOU.");
+      return;
     }
 
-    setIous((previous) => [newIou, ...previous]);
-    setSelectedIouId(newIou.id);
-    setView("detail");
-    setFormAmount("");
-    setFormCounterparty("");
-    setFormNote("");
-    setFormDueDate("");
-    setPaymentStatus("IOU created. No Pi moves until you pay.");
+    try {
+      const response = await fetch("/api/ious/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          pi_uid: piUser.uid,
+          direction: "outgoing",
+          counterparty: formCounterparty.trim(),
+          amount,
+          note: formNote.trim() || undefined,
+          due_date: formDueDate || undefined
+        })
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        setPaymentStatus(payload?.error ?? "Unable to create the IOU right now.");
+        return;
+      }
+
+      const payload = (await response.json()) as ApiIou | null;
+
+      if (!payload) {
+        setPaymentStatus("Unable to create the IOU right now.");
+        return;
+      }
+
+      const persisted = mapApiIouToClient(payload);
+      setIous((previous) => [persisted, ...previous]);
+      setSelectedIouId(persisted.id);
+      setView("detail");
+      setFormAmount("");
+      setFormCounterparty("");
+      setFormNote("");
+      setFormDueDate("");
+      setPaymentStatus("IOU created. No Pi moves until you pay.");
+    } catch {
+      setPaymentStatus("Unable to create the IOU right now.");
+    }
   };
 
   const handleAcceptIou = (id: string) => {
