@@ -135,6 +135,13 @@ export default function Home() {
   const [formNote, setFormNote] = useState<string>("");
   const [formDueDate, setFormDueDate] = useState<string>("");
 
+  const piUid = useMemo(
+    () => serverUser?.uid ?? authResult?.user?.uid ?? null,
+    [authResult?.user?.uid, serverUser?.uid]
+  );
+  const isWaitingForPiUid = !piUid;
+  const iousToRender = ious.length ? ious : placeholderIous;
+
   const replaceIousWithPersisted = (items: Iou[]) => {
     if (!items.length) return;
 
@@ -207,7 +214,10 @@ export default function Home() {
     }
   }, [view]);
 
-  const selectedIou = useMemo(() => ious.find((iou) => iou.id === selectedIouId) ?? null, [ious, selectedIouId]);
+  const selectedIou = useMemo(
+    () => iousToRender.find((iou) => iou.id === selectedIouId) ?? null,
+    [iousToRender, selectedIouId]
+  );
 
   const appendMockLog = (entry: string) => {
     setMockPaymentLog((previous) => [...previous, entry]);
@@ -705,12 +715,12 @@ export default function Home() {
       </section>
 
       <section id="list" className="glass-card space-y-4 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-piGold">My IOUs</p>
-            <h2 className="text-2xl font-semibold">Quick overview</h2>
-          </div>
-          <div className="flex gap-2 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-piGold">My IOUs</p>
+              <h2 className="text-2xl font-semibold">Quick overview</h2>
+            </div>
+            <div className="flex gap-2 text-sm">
             <button
               type="button"
               onClick={() => setView("create")}
@@ -728,8 +738,11 @@ export default function Home() {
             </button>
           </div>
         </div>
+        {isWaitingForPiUid ? (
+          <p className="text-sm text-slate-300">Loading your Pi session... showing sample IOUs.</p>
+        ) : null}
         <div className="grid gap-4 md:grid-cols-2">
-          {ious.map((iou) => renderIouCard(iou))}
+          {iousToRender.map((iou) => renderIouCard(iou))}
         </div>
       </section>
 
