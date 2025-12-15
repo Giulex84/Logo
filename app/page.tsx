@@ -491,6 +491,14 @@ export default function Home() {
 
           {authError ? <p className="text-sm text-red-300">{authError}</p> : null}
         </div>
+        <div className="space-y-3 rounded-2xl border border-piGold/30 bg-piGold/10 p-5 text-sm text-piGold">
+          <p className="font-semibold text-slate-100">Detail example</p>
+          <p className="text-lg font-bold text-slate-100">10 Pi</p>
+          <p className="text-slate-100">To pay Luca</p>
+          <p className="text-slate-100">Status: {statusLabels.pending}</p>
+          <p className="text-slate-100">Reason: Dinner last night</p>
+          <p className="text-slate-100">Due date: {formatDate(placeholderIous[0]?.dueDate)}</p>
+        </div>
       </section>
 
       <section className="glass-card grid gap-6 p-6 md:grid-cols-[1.1fr_0.9fr]">
