@@ -260,7 +260,7 @@ export default function Home() {
     setActivePaymentId(null);
 
     if (!authResult) {
-      setPaymentStatus("Sign in with Pi before paying the IOU.");
+      setPaymentStatus("Sign in with Pi before settling the IOU.");
       return;
     }
 
@@ -402,25 +402,25 @@ export default function Home() {
     >
       <header className="flex flex-col gap-4 text-center">
         <p className="text-sm uppercase tracking-[0.2em] text-piGold">IOU App</p>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">💸 Log an IOU. Settle it in Pi.</h1>
+        <h1 className="text-4xl font-bold leading-tight md:text-5xl">💸 Promise now. Settle later in Pi.</h1>
         <p className="text-lg text-slate-200 md:text-xl">
-          Create an IOU, share it with someone, and settle it whenever you like — in Pi.
+          Create a promise, share it, and pay in Pi only when you choose.
         </p>
-        <p className="text-sm text-slate-300">An IOU is a promise to pay between two people.</p>
+        <p className="text-sm text-slate-300">An IOU is a simple promise between two people.</p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => setView("create")}
             className="button-primary"
           >
-            ➕ Create an IOU
+            ➕ Create a promise
           </button>
           <button
             type="button"
             onClick={() => setView("list")}
             className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-piGold hover:text-piGold"
           >
-            📄 See my IOUs
+            📄 View my promises
           </button>
         </div>
       </header>
@@ -430,8 +430,8 @@ export default function Home() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Pi Browser</p>
-              <h2 className="text-2xl font-semibold">Ready to pay</h2>
-              <p className="text-sm text-slate-300">Automatic checks confirm if you are inside Pi Browser.</p>
+              <h2 className="text-2xl font-semibold">Ready to settle</h2>
+              <p className="text-sm text-slate-300">We check automatically if you are in Pi Browser.</p>
             </div>
             <span className="pill text-xs text-slate-100">{piSdkAvailable ? "Active" : "Waiting"}</span>
           </div>
@@ -452,8 +452,8 @@ export default function Home() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-piGold">Sign in</p>
-              <h2 className="text-xl font-semibold">Sign in with your Pi account</h2>
-              <p className="text-xs text-slate-300">This links IOUs to your identity.</p>
+              <h2 className="text-xl font-semibold">Sign in with Pi</h2>
+              <p className="text-xs text-slate-300">Keep promises tied to you.</p>
             </div>
             <button
               type="button"
@@ -485,7 +485,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-              <p>Sign in to link IOUs to your Pi profile and pay them.</p>
+              <p>Sign in to link promises to your Pi profile.</p>
             </div>
           )}
 
@@ -496,14 +496,14 @@ export default function Home() {
       <section className="glass-card grid gap-6 p-6 md:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">What is an IOU</p>
-          <h2 className="text-2xl font-semibold">Clear promise, paid in Pi</h2>
+          <h2 className="text-2xl font-semibold">A promise you settle in Pi</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-200">
-            <li>Write who pays whom, how much, and why.</li>
-            <li>Creating it does not move Pi: it is just a shared reminder.</li>
-            <li>When you are ready, pay the IOU with Pi directly from the app.</li>
+            <li>State who pays whom, how much, and why.</li>
+            <li>Creating it does not move Pi: it is only a record.</li>
+            <li>Pay later in Pi when you decide.</li>
           </ul>
           <p className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-            Possible states: {statusLabels.pending}, {statusLabels.accepted}, {statusLabels.paid}, {statusLabels.cancelled}.
+            States: {statusLabels.pending}, {statusLabels.accepted}, {statusLabels.paid}, {statusLabels.cancelled}.
           </p>
         </div>
         <div className="space-y-3 rounded-2xl border border-piGold/30 bg-piGold/10 p-5 text-sm text-piGold">
@@ -519,7 +519,7 @@ export default function Home() {
       <section id="create" className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
         <form onSubmit={handleCreateIou} className="glass-card flex flex-col gap-4 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">Create IOU</p>
-          <h2 className="text-2xl font-semibold">Make a new promise</h2>
+          <h2 className="text-2xl font-semibold">Create a promise</h2>
 
           <label className="space-y-2 text-sm font-medium text-slate-200">
             Amount (in Pi)
@@ -534,7 +534,7 @@ export default function Home() {
           </label>
 
           <label className="space-y-2 text-sm font-medium text-slate-200">
-            Who do I owe these Pi to?
+            Who do you owe?
             <input
               type="text"
               value={formCounterparty}
@@ -568,21 +568,21 @@ export default function Home() {
             type="submit"
             className="button-primary w-full justify-center text-center"
           >
-            Create IOU
+            Create promise
           </button>
-          <p className="text-xs text-slate-400">Starting state: {statusLabels.pending}. No payment started.</p>
+          <p className="text-xs text-slate-400">Starts as {statusLabels.pending}. No Pi moves yet.</p>
         </form>
 
         <div className="glass-card flex flex-col gap-4 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-piGold">How it works</p>
-          <h2 className="text-xl font-semibold">Accept, decline, pay</h2>
+          <h2 className="text-xl font-semibold">Agree, decline, settle</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-200">
-            <li>The receiver can accept the IOU or decline it.</li>
-            <li>Accepting is not paying: it is just a green light.</li>
-            <li>To pay, open the detail and press 💰 Pay in Pi.</li>
+            <li>The receiver can accept or decline.</li>
+            <li>Accepting signals agreement; no Pi moves.</li>
+            <li>To settle, open the detail and press 💰 Settle in Pi.</li>
           </ul>
           <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-            You are about to settle this IOU by paying the agreed amount to the counterparty.
+            Settling pays the agreed amount only when you confirm.
           </div>
         </div>
       </section>
@@ -662,12 +662,12 @@ export default function Home() {
                   disabled={isPaymentLoading}
                   className="rounded-lg bg-white/10 px-4 py-2 font-semibold text-white ring-1 ring-white/20 transition hover:ring-piGold/80 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isPaymentLoading ? "Processing..." : "💰 Pay in Pi"}
+                  {isPaymentLoading ? "Processing..." : "💰 Settle in Pi"}
                 </button>
               ) : null}
             </div>
             <p className="text-sm text-slate-300">
-              You are about to settle this IOU by paying {selectedIou.amount} Pi to {selectedIou.counterparty}.
+              Settling pays {selectedIou.amount} Pi to {selectedIou.counterparty} only when you confirm.
             </p>
           </div>
 

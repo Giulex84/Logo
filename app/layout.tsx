@@ -4,13 +4,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Pi IOU",
-  description: "Create, share, and pay IOUs in Pi with a clear flow for real people.",
+  description: "Promise now and settle in Pi with a simple, clear flow.",
   applicationName: "Pi IOU",
   keywords: ["Pi", "Pi Network", "IOU", "promises", "Next.js"],
   metadataBase: new URL("https://iou4088.pi"),
   openGraph: {
     title: "Pi IOU",
-    description: "Log a debt and settle it in Pi with a people-first UI.",
+    description: "Log a promise and settle it in Pi with a calm, clear UI.",
     url: "https://iou4088.pi",
     siteName: "Pi IOU"
   }
