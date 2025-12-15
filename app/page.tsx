@@ -127,6 +127,7 @@ export default function Home() {
   const [mockPaymentLog, setMockPaymentLog] = useState<string[]>([]);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [isCreateIouLoading, setIsCreateIouLoading] = useState(false);
 
   const [ious, setIous] = useState<Iou[]>(placeholderIous);
   const [selectedIouId, setSelectedIouId] = useState<string | null>(placeholderIous[0]?.id ?? null);
@@ -292,7 +293,8 @@ export default function Home() {
 
   const handleCreateIou = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const amount = Number(formAmount);
+    const normalizedAmountText = formAmount.replace(/,/g, ".").trim();
+    const amount = Number(normalizedAmountText);
 
     if (!Number.isFinite(amount) || amount <= 0 || !formCounterparty.trim()) {
       setPaymentStatus("Add an amount and who you owe to create the IOU.");
@@ -305,6 +307,7 @@ export default function Home() {
       return;
     }
 
+    setIsCreateIouLoading(true);
     setPaymentStatus("Creating IOU...");
 
     const parsedDueDate = formDueDate ? new Date(formDueDate) : null;
@@ -320,6 +323,7 @@ export default function Home() {
     };
 
     try {
+      console.log("Sending IOU creation request", requestBody);
       const response = await fetch("/api/ious/create", {
         method: "POST",
         headers: {
@@ -328,10 +332,12 @@ export default function Home() {
         body: JSON.stringify(requestBody)
       });
 
+      console.log("IOU creation response", response.status);
       const payload = (await response.json().catch(() => null)) as (ApiIou & { error?: string }) | null;
 
       if (!response.ok || !payload || ("error" in payload && payload.error)) {
-        setPaymentStatus((payload as { error?: string } | null)?.error ?? "Could not save the IOU.");
+        const errorMessage = (payload as { error?: string } | null)?.error ?? `Could not save the IOU. (${response.status})`;
+        setPaymentStatus(errorMessage);
         return;
       }
 
@@ -344,8 +350,10 @@ export default function Home() {
       setFormNote("");
       setFormDueDate("");
       setPaymentStatus("IOU created. No Pi moves until you pay.");
-    } catch {
-      setPaymentStatus("Unable to reach the server. Try again.");
+    } catch (error) {
+      setPaymentStatus((error as Error).message || "Unable to reach the server. Try again.");
+    } finally {
+      setIsCreateIouLoading(false);
     }
   };
 
@@ -691,9 +699,10 @@ export default function Home() {
 
           <button
             type="submit"
-            className="button-primary w-full justify-center text-center"
+            disabled={isCreateIouLoading}
+            className="button-primary w-full justify-center text-center disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Create promise
+            {isCreateIouLoading ? "Creating..." : "Create promise"}
           </button>
           <p className="text-xs text-slate-400">Starts as {statusLabels.pending}. No Pi moves yet.</p>
         </form>
