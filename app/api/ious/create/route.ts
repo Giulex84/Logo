@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const amount = typeof body?.amount === "number" ? body.amount : Number(body?.amount);
   const note = body?.note?.trim() || undefined;
 
-  if (!pi_uid || !direction || !counterparty || !Number.isFinite(amount) || amount <= 0) {
+  if (!pi_uid || !direction || !Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Missing or invalid IOU fields." }, { status: 400 });
   }
 
@@ -49,6 +49,12 @@ export async function POST(request: Request) {
   }
 
   const inserted = Array.isArray(data) ? data[0] : data;
+  const fallbackTimestamps = inserted
+    ? undefined
+    : {
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-  return NextResponse.json(inserted ? { ...payload, ...inserted } : payload);
+  return NextResponse.json({ ...payload, ...fallbackTimestamps, ...inserted });
 }
