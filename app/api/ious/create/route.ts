@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.from("ious").insert(payload);
 
     if (error) {
-      console.error("Supabase insert error", error);
+      console.error("Supabase insert error:", error.message, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
