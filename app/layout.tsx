@@ -9,15 +9,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <head>
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
-
-        <PiProvider>
-          {children}
-        </PiProvider>
+      </head>
+      <body className="min-h-screen">
+        <PiProvider>{children}</PiProvider>
       </body>
     </html>
   );
