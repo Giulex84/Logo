@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function HomePage() {
-  const [username, setUsername] = useState<string | null>(null);
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -15,11 +13,10 @@ export default function HomePage() {
     Pi.authenticate(
       ['username'],
       (auth: any) => {
-        setUsername(auth.user.username);
-        localStorage.setItem('pi_username', auth.user.username);
+        console.log('Authenticated as:', auth.user.username);
       },
-      (err: any) => {
-        console.error('Pi auth error', err);
+      (error: any) => {
+        console.error('Pi authentication failed:', error);
       }
     );
   }, []);
@@ -27,15 +24,10 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-3xl p-6 flex flex-col min-h-screen">
       <div className="flex-grow">
-        <h1 className="text-3xl font-bold mb-4">IOU</h1>
-
-        <p className="mb-2 text-sm text-slate-400">
-          Logged as: {username ?? 'authenticating…'}
-        </p>
+        <h1 className="text-3xl font-bold mb-4">Giulex Hub</h1>
 
         <p className="mb-4">
-          IOU is a transparency utility that allows users to record commitments
-          between identified peers.
+          Giulex Hub is a technical mainnet anchor app.
         </p>
 
         <Link
@@ -44,15 +36,8 @@ export default function HomePage() {
         >
           Create a commitment
         </Link>
-      </div>
 
-      <footer className="mt-12 border-t pt-4 text-sm text-slate-500">
-        <div className="flex gap-4">
-          <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/terms">Terms of Service</Link>
-        </div>
-
-        <div className="mt-6">
+        <div className="mt-10">
           <Link
             href="/pay-once"
             className="text-xs text-slate-500 underline"
@@ -60,7 +45,7 @@ export default function HomePage() {
             Internal test payment
           </Link>
         </div>
-      </footer>
+      </div>
     </main>
   );
 }
