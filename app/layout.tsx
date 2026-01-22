@@ -1,12 +1,6 @@
 import Script from 'next/script';
-import type { Metadata } from 'next';
 import './globals.css';
-
-export const metadata: Metadata = {
-  title: 'Pi IOU',
-  description: 'Promise now and settle in Pi with a simple, clear flow.',
-  applicationName: 'Pi IOU',
-};
+import PiProvider from './providers/PiProvider';
 
 export default function RootLayout({
   children,
@@ -15,14 +9,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
+      <body>
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
-      </head>
-      <body className="min-h-screen">
-        {children}
+
+        <PiProvider>
+          {children}
+        </PiProvider>
       </body>
     </html>
   );
