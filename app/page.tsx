@@ -1,6 +1,20 @@
-import Link from "next/link";
+'use client';
+
+import { useEffect } from 'react';
+import Link from 'next/link';
 
 export default function HomePage() {
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).Pi) {
+      (window as any).Pi.authenticate(
+        ['username'],
+        () => {},
+        () => {}
+      );
+    }
+  }, []);
+
   return (
     <main className="mx-auto max-w-3xl p-6 flex flex-col min-h-screen">
       <div className="flex-grow">
@@ -38,15 +52,15 @@ export default function HomePage() {
           <Link href="/terms">Terms of Service</Link>
         </div>
       </footer>
-      <div className="mt-10">
-  <a
-    href="/pay-once"
-    className="text-xs text-slate-500 underline"
-  >
-    Internal test payment
-  </a>
-</div>
 
+      <div className="mt-10">
+        <a
+          href="/pay-once"
+          className="text-xs text-slate-500 underline"
+        >
+          Internal test payment
+        </a>
+      </div>
     </main>
   );
 }
