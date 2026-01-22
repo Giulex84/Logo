@@ -20,19 +20,21 @@ export default function PiProvider({
 
     const waitForPi = () => {
       if (window.Pi) {
-        try {
-          window.Pi.init({
-            version: '2.0',
-            sandbox: false,
-          });
+        window.Pi.init({ version: '2.0' });
 
-          if (!cancelled) {
-            setReady(true);
-            console.log('[Pi SDK] initialized');
+        window.Pi.authenticate(
+          ['username', 'payments'],
+          (auth: any) => {
+            if (!cancelled) {
+              console.log('Pi authenticated:', auth);
+              localStorage.setItem('pi_user', JSON.stringify(auth));
+              setReady(true);
+            }
+          },
+          (err: any) => {
+            console.error('Pi auth error', err);
           }
-        } catch (err) {
-          console.error('[Pi SDK] init error', err);
-        }
+        );
       } else {
         setTimeout(waitForPi, 100);
       }
@@ -46,7 +48,7 @@ export default function PiProvider({
   }, []);
 
   if (!ready) {
-    return null;
+    return <div className="p-6 text-slate-400">Authenticating with Pi…</div>;
   }
 
   return <>{children}</>;
