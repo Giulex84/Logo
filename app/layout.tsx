@@ -1,6 +1,4 @@
-import Script from 'next/script';
 import './globals.css';
-import PiProvider from './providers/PiProvider';
 
 export default function RootLayout({
   children,
@@ -10,13 +8,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          src="https://sdk.minepi.com/pi-sdk.js"
-          strategy="beforeInteractive"
+        <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (window.Pi) {
+                Pi.init({ version: "2.0" });
+              }
+            `,
+          }}
         />
       </head>
       <body className="min-h-screen">
-        <PiProvider>{children}</PiProvider>
+        {children}
       </body>
     </html>
   );
