@@ -4,15 +4,22 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function HomePage() {
-
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).Pi) {
-      (window as any).Pi.authenticate(
-        ['username'],
-        () => {},
-        () => {}
-      );
-    }
+    if (typeof window === 'undefined') return;
+
+    const Pi = (window as any).Pi;
+    if (!Pi) return;
+
+    Pi.authenticate(
+      ['username'],
+      (authResult: any) => {
+        console.log('Pi auth success:', authResult);
+        // authResult.user.username disponibile
+      },
+      (error: any) => {
+        console.error('Pi auth failed:', error);
+      }
+    );
   }, []);
 
   return (
@@ -51,16 +58,16 @@ export default function HomePage() {
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
         </div>
-      </footer>
 
-      <div className="mt-10">
-        <a
-          href="/pay-once"
-          className="text-xs text-slate-500 underline"
-        >
-          Internal test payment
-        </a>
-      </div>
+        <div className="mt-6">
+          <Link
+            href="/pay-once"
+            className="text-xs text-slate-500 underline"
+          >
+            Internal test payment
+          </Link>
+        </div>
+      </footer>
     </main>
   );
 }
