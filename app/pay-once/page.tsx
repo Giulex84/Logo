@@ -1,86 +1,84 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
+
+declare global {
+  interface Window {
+    Pi: any;
+  }
+}
 
 export default function PayOncePage() {
-  const [processing, setProcessing] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
-  const handlePayment = async () => {
-    if (processing || done) return;
-
-    const Pi = (window as any).Pi;
-
-    if (!Pi) {
-      setError("Pi SDK not available.");
+  const handlePayment = () => {
+    if (!window.Pi) {
+      setStatus('Pi SDK not available');
       return;
     }
 
-    setProcessing(true);
-    setError(null);
+    setStatus('Requesting payment permission...');
 
-    try {
-      await Pi.createPayment(
-        {
-          amount: 0.01,
-          memo: "Mainnet test payment",
-        },
-        {
-          onReadyForServerApproval: function (_paymentId: string) {
-            // No backend approval
-          },
-          onReadyForServerCompletion: function (_paymentId: string, _txid: string) {
-            // No backend completion
-          },
-          onCancel: function () {
-            setProcessing(false);
-          },
-          onError: function (err: any) {
-            setError(err?.message || "Payment error");
-            setProcessing(false);
-          },
-        }
-      );
+    window.Pi.authenticate(
+      ['payments'],
+      () => {
+        setStatus('Creating payment...');
 
-      setDone(true);
-    } catch (e: any) {
-      setError(e?.message || "Unexpected error");
-      setProcessing(false);
-    }
+        window.Pi.createPayment(
+          {
+            amount: 0.01,
+            memo: 'Mainnet test payment',
+            metadata: {
+              type: 'mainnet-test',
+            },
+          },
+          {
+            onReadyForServerApproval: (paymentId: string) => {
+              console.log('Ready for server approval', paymentId);
+              setStatus('Payment created. Waiting approval...');
+              // per checklist va bene anche senza backend
+            },
+            onReadyForServerCompletion: (paymentId: string) => {
+              console.log('Ready for completion', paymentId);
+              setStatus('Payment completed');
+            },
+            onCancel: () => {
+              setStatus('Payment cancelled');
+            },
+            onError: (err: any) => {
+              console.error(err);
+              setStatus('Payment error');
+            },
+          }
+        );
+      },
+      (err: any) => {
+        console.error('Payments auth error', err);
+        setStatus('Payment permission denied');
+      }
+    );
   };
 
   return (
-    <main className="mx-auto max-w-xl p-6 flex flex-col gap-6 min-h-screen">
-      <h1 className="text-2xl font-bold">Mainnet Test Payment</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-slate-100">
+      <h1 className="text-2xl font-semibold">Mainnet Test Payment</h1>
 
-      <p className="text-sm text-slate-600">
+      <p className="text-slate-400 text-center max-w-md">
         This page processes a single Mainnet Pi transaction to complete the app checklist.
       </p>
 
-      {!done && (
-        <button
-          onClick={handlePayment}
-          disabled={processing}
-          className={`rounded-lg px-4 py-2 text-white ${
-            processing ? "bg-gray-400" : "bg-indigo-600"
-          }`}
-        >
-          {processing ? "Processing..." : "Process Test Payment"}
-        </button>
-      )}
+      <button
+        onClick={handlePayment}
+        className="px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition"
+      >
+        Process Test Payment
+      </button>
 
-      {done && (
-        <div className="rounded-lg border p-4 text-green-700 border-green-300">
-          Payment completed. You can close this page.
+      {status && (
+        <div className="mt-4 text-sm text-slate-300">
+          {status}
         </div>
       )}
-
-      {error && (
-        <div className="rounded-lg border p-4 text-red-700 border-red-300">
-          {error}
-        </div>
-      )}
-    </main>
+    </div>
   );
 }
