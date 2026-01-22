@@ -1,9 +1,7 @@
-import type { PiNetwork } from "@/lib/pi-sdk";
+export {};
 
 declare global {
   interface Window {
-    Pi?: PiNetwork;
+    Pi: any;
   }
 }
-
-export {};
