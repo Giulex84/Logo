@@ -1,9 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+
+declare global {
+  interface Window {
+    Pi: any;
+  }
+}
 
 export default function PiProvider({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
@@ -13,14 +19,20 @@ export default function PiProvider({
     let cancelled = false;
 
     const waitForPi = () => {
-      if (cancelled) return;
-
       if (window.Pi) {
-        window.Pi.init({
-          version: "2.0",
-          sandbox: false
-        });
-        setReady(true);
+        try {
+          window.Pi.init({
+            version: '2.0',
+            sandbox: false,
+          });
+
+          if (!cancelled) {
+            setReady(true);
+            console.log('[Pi SDK] initialized');
+          }
+        } catch (err) {
+          console.error('[Pi SDK] init error', err);
+        }
       } else {
         setTimeout(waitForPi, 100);
       }
@@ -34,11 +46,7 @@ export default function PiProvider({
   }, []);
 
   if (!ready) {
-    return (
-      <div className="p-4 text-sm text-slate-400">
-        Initializing Pi SDK…
-      </div>
-    );
+    return null;
   }
 
   return <>{children}</>;
