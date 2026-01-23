@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Giulex Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Pi SDK -->
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f1020;
+      color: #fff;
+      padding: 40px;
+    }
+    button {
+      padding: 12px 20px;
+      margin-top: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .box {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Giulex Hub</h1>
+
+  <div class="box">
+    <p>Status: <span id="status">loading…</span></p>
+    <p>User: <span id="user">guest</span></p>
+  </div>
+
+  <button id="payBtn" disabled>Process Test Payment</button>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const userEl = document.getElementById('user');
+    const payBtn = document.getElementById('payBtn');
+
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+      console.log('[STATUS]', msg);
+    }
+
+    function initPi() {
+      if (!window.Pi) {
+        setStatus('Pi SDK not available');
+        return;
+      }
+
+      try {
+        Pi.init({
+          version: "2.0",
+          sandbox: false
+        });
+
+        setStatus('Pi SDK initialized');
+
+        Pi.authenticate(
+          ['username', 'payments'],
+          function (auth) {
+            userEl.textContent = auth.user.username;
+            setStatus('Authenticated');
+            payBtn.disabled = false;
+          },
+          function (err) {
+            console.error(err);
+            setStatus('Authentication failed');
+          }
+        );
+
+      } catch (e) {
+        console.error(e);
+        setStatus('Init error');
+      }
+    }
+
+    payBtn.onclick = function () {
+      setStatus('Creating payment…');
+
+      Pi.createPayment(
+        {
+          amount: 0.01,
+          memo: 'Mainnet test payment',
+          metadata: { app: 'giulexhub' }
+        },
+        {
+          onReadyForServerApproval: function (paymentId) {
+            console.log('Approval needed', paymentId);
+          },
+          onReadyForServerCompletion: function (paymentId) {
+            console.log('Completion needed', paymentId);
+            setStatus('Payment completed');
+          },
+          onCancel: function () {
+            setStatus('Payment cancelled');
+          },
+          onError: function (err) {
+            console.error(err);
+            setStatus('Payment error');
+          }
+        }
+      );
+    };
+
+    // INIT IMMEDIATO (Idle Realm style)
+    initPi();
+  </script>
+
+</body>
+</html>
