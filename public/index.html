@@ -1,66 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Giulex Hub</title>
+  <meta charset="UTF-8" />
+  <title>Giulex Hub – Testnet</title>
+
+  <!-- Pi SDK -->
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <script>
+    let piReady = false;
+    let authenticated = false;
+    let currentUser = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.Pi) {
+        Pi.init({
+          version: "2.0",
+          sandbox: true
+        });
+        piReady = true;
+        log("Pi SDK initialized (sandbox)");
+      } else {
+        log("ERROR: Pi SDK not loaded");
+      }
+    });
+
+    function log(msg) {
+      document.getElementById("log").textContent += msg + "\n";
+    }
+
+    async function authenticate() {
+      if (!piReady) {
+        log("SDK not ready");
+        return;
+      }
+      if (authenticated) {
+        log("Already authenticated");
+        return;
+      }
+
+      log("Authenticating...");
+
+      try {
+        const auth = await Pi.authenticate(
+          ["username", "payments"],
+          onIncompletePaymentFound
+        );
+
+        authenticated = true;
+        currentUser = auth.user;
+        log("Authenticated as: " + auth.user.username);
+      } catch (err) {
+        log("AUTH ERROR: " + JSON.stringify(err));
+      }
+    }
+
+    function onIncompletePaymentFound(payment) {
+      log("Incomplete payment found: " + payment.identifier);
+    }
+
+    async function pay() {
+      if (!authenticated) {
+        log("ERROR: authenticate first");
+        return;
+      }
+
+      log("Creating payment...");
+
+      try {
+        const payment = await Pi.createPayment(
+          {
+            amount: 1,
+            memo: "Giulex Hub Test Payment",
+            metadata: { source: "giulex-hub-test" }
+          },
+          {
+            onReadyForServerApproval: (p) => {
+              log("Ready for approval: " + p.identifier);
+            },
+            onReadyForServerCompletion: (p) => {
+              log("Ready for completion: " + p.identifier);
+            },
+            onCancel: (p) => {
+              log("Payment cancelled: " + p.identifier);
+            },
+            onError: (err) => {
+              log("Payment error: " + JSON.stringify(err));
+            }
+          }
+        );
+      } catch (err) {
+        log("PAY ERROR: " + JSON.stringify(err));
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: monospace;
+      background: #0a1020;
+      color: #e6ecff;
+      padding: 20px;
+    }
+    button {
+      margin: 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    pre {
+      margin-top: 20px;
+      background: #020617;
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 120px;
+    }
+  </style>
 </head>
 <body>
-<h1>Giulex Hub</h1>
 
-<button id="auth">Authenticate</button>
-<button id="pay">Pay 1 Test-Pi</button>
+  <h1>Giulex Hub – Testnet</h1>
 
-<pre id="log"></pre>
+  <button onclick="authenticate()">Authenticate</button>
+  <button onclick="pay()">Pay 1 Test-Pi</button>
 
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<script>
-const log = (m) =>
-  document.getElementById("log").textContent +=
-  "\n" + (typeof m === "string" ? m : JSON.stringify(m, null, 2));
+  <pre id="log">Waiting...\n</pre>
 
-if (!window.Pi) {
-  log("❌ Pi SDK NOT LOADED");
-} else {
-  log("✅ Pi SDK loaded");
-}
-
-Pi.init({ version: "2.0", sandbox: false });
-
-document.getElementById("auth").onclick = async () => {
-  const res = await Pi.authenticate(["username","payments"], () => {}, () => {});
-  log(res);
-};
-
-document.getElementById("pay").onclick = () => {
-  log("▶ pay() clicked");
-
-  Pi.createPayment({
-    amount: 1,
-    memo: "Giulex Test Payment",
-    metadata: { test: true },
-
-    onReadyForServerApproval: async (paymentId) => {
-      log("approve: " + paymentId);
-      await fetch("/api/pi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "approve", paymentId }),
-      });
-    },
-
-    onReadyForServerCompletion: async (paymentId, txid) => {
-      log("complete: " + paymentId);
-      await fetch("/api/pi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "complete", paymentId, txid }),
-      });
-    },
-
-    onCancel: (e) => log("❌ canceled"),
-    onError: (e) => log("❌ error " + JSON.stringify(e)),
-  });
-};
-</script>
 </body>
 </html>
