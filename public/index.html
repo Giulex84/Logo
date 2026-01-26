@@ -2,12 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Giulex Hub – Pi Auth</title>
+    <title>Giulex Hub</title>
 
-    <!-- PI SDK -->
+    <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script>
-      // INIT OBBLIGATORIO
+      // Pi SDK init (OBBLIGATORIO, una sola volta)
       Pi.init({ version: "2.0" });
       console.log("Pi SDK initialized");
     </script>
@@ -16,59 +16,96 @@
       body {
         background: #0b0f1a;
         color: #ffffff;
-        font-family: system-ui, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100vh;
         margin: 0;
       }
-      .box {
+
+      .card {
         background: #11172a;
-        padding: 24px;
-        border-radius: 16px;
+        padding: 28px;
+        border-radius: 18px;
+        width: 340px;
         text-align: center;
-        width: 320px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.55);
       }
+
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 22px;
+      }
+
+      p {
+        margin: 0 0 16px 0;
+        font-size: 14px;
+        opacity: 0.85;
+      }
+
       button {
-        margin-top: 16px;
-        padding: 12px 20px;
-        font-size: 16px;
+        width: 100%;
+        padding: 12px;
         border-radius: 999px;
         border: none;
         background: #ff8c1a;
         color: #000;
+        font-size: 16px;
+        font-weight: 600;
         cursor: pointer;
       }
+
       .status {
         margin-top: 16px;
         font-size: 14px;
-        opacity: 0.9;
+      }
+
+      .links {
+        margin-top: 16px;
+        font-size: 13px;
+      }
+
+      .links a {
+        color: #9bb7ff;
+        text-decoration: none;
+        margin: 0 6px;
+      }
+
+      .links a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
 
   <body>
-    <div class="box">
-      <h2>Giulex Hub</h2>
+    <div class="card">
+      <h1>Giulex Hub</h1>
       <p>Pi Network Authentication</p>
 
-      <button id="login">Login with Pi</button>
+      <button id="loginBtn">Login with Pi</button>
 
       <div class="status" id="status">Status: idle</div>
+
+      <!-- I link compaiono DOPO auth -->
+      <div class="links" id="legal" style="display: none;">
+        <a href="/privacy.html" target="_blank">Privacy Policy</a> |
+        <a href="/terms.html" target="_blank">Terms of Service</a>
+      </div>
     </div>
 
     <script>
       const scopes = ["username"];
 
+      // Callback obbligatoria (anche se non usata ora)
       function onIncompletePayment(payment) {
         console.log("Incomplete payment", payment);
       }
 
-      document.getElementById("login").onclick = async () => {
-        document.getElementById("status").innerText =
-          "Status: waiting for user action...";
+      document.getElementById("loginBtn").onclick = async () => {
+        const statusEl = document.getElementById("status");
+
+        statusEl.innerText = "Status: waiting for user action…";
 
         try {
           const auth = await Pi.authenticate(
@@ -78,14 +115,16 @@
 
           console.log("AUTH SUCCESS", auth);
 
-          document.getElementById("status").innerHTML =
-            "✅ Auth completed<br>User: <b>" +
-            auth.user.username +
-            "</b>";
+          statusEl.innerHTML = `
+            ✅ Auth completed<br />
+            User: <b>${auth.user.username}</b>
+          `;
+
+          // Mostra Privacy / Terms dopo login
+          document.getElementById("legal").style.display = "block";
         } catch (err) {
           console.error("AUTH ERROR", err);
-          document.getElementById("status").innerText =
-            "❌ Authentication failed";
+          statusEl.innerText = "❌ Authentication failed";
         }
       };
     </script>
