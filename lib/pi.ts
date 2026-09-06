@@ -75,7 +75,10 @@ export async function getPayment(paymentId: string): Promise<PiPayment> {
 export function validatePremiumPayment(payment: PiPayment, expectedUid?: string): string | null {
   if (!payment?.identifier || !payment.user_uid) return "Malformed payment";
   if (expectedUid && payment.user_uid !== expectedUid) return "Payment does not belong to authenticated user";
+  if (payment.direction !== "user_to_app") return "Unexpected payment direction";
+  if (payment.network !== "Pi Network") return "Unexpected payment network";
   if (Number(payment.amount) !== PREMIUM_AMOUNT) return "Unexpected payment amount";
+  if (payment.memo !== PREMIUM_MEMO) return "Unexpected payment memo";
   if (payment.metadata?.product !== PREMIUM_PRODUCT) return "Unexpected payment product";
   if (payment.status?.cancelled || payment.status?.user_cancelled) return "Payment is cancelled";
   return null;
