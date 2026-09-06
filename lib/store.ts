@@ -53,11 +53,23 @@ export async function hasPremium(uid: string): Promise<boolean> {
   return value === "1" || value === 1;
 }
 
+async function claimPayment(uid: string, paymentId: string): Promise<void> {
+  // Atomic first-writer claim. Repeated callbacks for the same payment/UID are
+  // intentionally idempotent; the same payment can never be reassigned to another UID.
+  const claimed = await command(["SET", paymentKey(paymentId), uid, "NX"]);
+  if (claimed === "OK") return;
+
+  const existingUid = await command(["GET", paymentKey(paymentId)]);
+  if (existingUid === uid) return;
+
+  throw new Error("Payment identifier is already associated with another Pi account");
+}
+
 export async function grantPremium(uid: string, paymentId: string): Promise<void> {
+  await claimPayment(uid, paymentId);
   await command(["SET", premiumKey(uid), "1"]);
-  await command(["SET", paymentKey(paymentId), uid]);
 }
 
 export async function markPaymentPending(uid: string, paymentId: string): Promise<void> {
-  await command(["SET", paymentKey(paymentId), uid]);
+  await claimPayment(uid, paymentId);
 }
