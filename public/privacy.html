@@ -1,57 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Arena - Privacy Policy</title>
-  <meta charset="UTF-8" />
-</head>
-<body style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
-  <h1>Privacy Policy</h1>
-
-  <p>Last updated: 2026</p>
-
-  <p>
-    Arena is a skill-based memory game built on Pi Network.
-  </p>
-
-  <h2>1. Data Collection</h2>
-  <p>
-    Arena does not collect, store, or process personal data.
-    Authentication is handled exclusively through the official Pi Network SDK.
-  </p>
-
-  <p>
-    When you log in, we receive your Pi username and a unique user identifier (UID)
-    from Pi Network. This information is used only to enable gameplay and payment
-    functionality within the app.
-  </p>
-
-  <h2>2. Payments</h2>
-  <p>
-    Premium features are unlocked via optional Pi payments.
-    All payment processing is handled by Pi Network. Arena does not store wallet
-    information or private keys.
-  </p>
-
-  <h2>3. Data Storage</h2>
-  <p>
-    Arena does not store personal user data on external databases.
-  </p>
-
-  <h2>4. Third-Party Services</h2>
-  <p>
-    Arena relies solely on Pi Network for authentication and payment processing.
-    No additional third-party services are used.
-  </p>
-
-  <h2>5. Changes</h2>
-  <p>
-    This Privacy Policy may be updated if the app functionality changes.
-  </p>
-
-  <h2>6. Contact</h2>
-  <p>
-    For questions, contact: glnmigliaccio@gmail.com
-  </p>
-
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arena - Privacy Policy</title></head><body style="font-family:Arial,sans-serif;max-width:760px;margin:auto;padding:24px;line-height:1.6;color:#161616">
+<h1>Privacy Policy</h1><p>Last updated: September 6, 2026</p>
+<p>Arena is a skill-based memory game built for Pi Network. This policy explains the limited information Arena processes to provide sign-in and optional Premium payments.</p>
+<h2>Information processed</h2><p>When you authorize Pi sign-in, Arena receives a Pi access token in the app and sends that token to Arena's backend. The backend validates it with Pi Network's <code>/v2/me</code> endpoint. Arena then uses the app-specific Pi UID and, if authorized, your Pi username. The client-provided user object is not used as the server source of truth.</p>
+<h2>Payments and Premium entitlement</h2><p>If you purchase Premium, Pi Network processes the blockchain payment. Arena's backend receives the Pi payment identifier and transaction identifier needed to approve, complete, verify, and recover that payment. Arena stores only the minimum entitlement record needed to remember that the verified Pi UID owns Premium and to avoid duplicate fulfillment. Arena does not request or store your wallet passphrase or private keys.</p>
+<h2>Gameplay data</h2><p>Current gameplay score, cards, lives, combos and level are used in the active game session. Arena does not rely on device local storage as the authoritative source for paid entitlements.</p>
+<h2>Service providers</h2><p>Arena uses Pi Network for authentication and Pi payments. Arena may use a server-side key-value database solely to persist Premium entitlement and payment fulfillment records. Server credentials are not exposed to the browser.</p>
+<h2>Retention and rights</h2><p>Premium entitlement and associated payment fulfillment records may be retained for as long as needed to provide the purchased feature, prevent duplicate fulfillment, resolve payment issues, and comply with applicable obligations. You may contact Arena to ask questions about these records.</p>
+<h2>Contact</h2><p>For privacy questions: <a href="mailto:glnmigliaccio@gmail.com">glnmigliaccio@gmail.com</a></p>
+</body></html>
