@@ -46,6 +46,14 @@ async function command(parts: Array<string | number>): Promise<any> {
 
 const premiumKey = (uid: string) => `arena:premium:${uid}`;
 const paymentKey = (paymentId: string) => `arena:payment:${paymentId}`;
+const gameStateKey = (uid: string) => `arena:game:${uid}`;
+
+export type GameState = {
+  level: number;
+  lives: number;
+  score: number;
+  updatedAt?: string | null;
+};
 
 export async function hasPremium(uid: string): Promise<boolean> {
   if (!isStoreConfigured()) return false;
@@ -72,4 +80,31 @@ export async function grantPremium(uid: string, paymentId: string): Promise<void
 
 export async function markPaymentPending(uid: string, paymentId: string): Promise<void> {
   await claimPayment(uid, paymentId);
+}
+
+export async function getGameState(uid: string): Promise<GameState | null> {
+  if (!isStoreConfigured()) return null;
+  const raw = await command(["GET", gameStateKey(uid)]);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(String(raw));
+    return {
+      level: Math.max(1, Math.trunc(Number(parsed.level) || 1)),
+      lives: Math.max(0, Math.trunc(Number.isFinite(Number(parsed.lives)) ? Number(parsed.lives) : 5)),
+      score: Math.max(0, Math.trunc(Number(parsed.score) || 0)),
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveGameState(uid: string, state: Partial<GameState>): Promise<GameState> {
+  if (!isStoreConfigured()) throw new Error("Persistent gameplay store is not configured");
+  const level = Math.max(1, Math.min(100, Math.trunc(Number(state.level) || 1)));
+  const lives = Math.max(0, Math.min(999, Math.trunc(Number(state.lives) || 0)));
+  const score = Math.max(0, Math.min(1_000_000_000, Math.trunc(Number(state.score) || 0)));
+  const value: GameState = { level, lives, score, updatedAt: new Date().toISOString() };
+  await command(["SET", gameStateKey(uid), JSON.stringify(value)]);
+  return value;
 }
