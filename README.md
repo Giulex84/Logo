@@ -12,6 +12,7 @@ This revision follows the current Pi developer architecture: Pi SDK on the front
 - Incomplete U2A payments are recovered server-side by looking up the payment with the Server API Key; the callback does not trust client UID/metadata.
 - The old client-controlled A2U `0.3 Pi` combo reward endpoint has been removed. Triple combo now gives gameplay points only. This avoids offering a Mainnet A2U payout while A2U availability/review is restricted.
 - Paid entitlement is no longer trusted from `localStorage`; it is stored server-side by verified Pi UID.
+- Gameplay progress (`level`, `lives`, `score`) is also stored server-side by verified Pi UID and restored after signing back in. A non-Premium Game Over can restart the current level while preserving accumulated score/progress.
 - Wildcard CORS was removed and baseline security headers were added.
 - Privacy Policy and Terms were updated to match actual data/payment behavior.
 
@@ -22,7 +23,7 @@ Copy `.env.example` values into your deployment provider:
 - `PI_API_KEY`: your existing Mainnet Server API Key from Pi Developer Portal.
 - `ARENA_KV_KV_REST_API_URL` and `ARENA_KV_KV_REST_API_TOKEN` (created automatically by Vercel/Upstash when using the `ARENA_KV` custom prefix): server-side Redis-compatible REST KV credentials.
 
-If the entitlement store is not configured, login/gameplay still work but the Premium purchase button is disabled. This is intentional: Arena should not accept a payment if it cannot reliably persist the purchased entitlement.
+The persistent store protects both paid Premium entitlement and gameplay progress. If it is not configured, login/gameplay can still load, but Premium purchase is intentionally unavailable and gameplay cannot be restored across sessions.
 
 ## Deploy safely
 
@@ -31,8 +32,10 @@ If the entitlement store is not configured, login/gameplay still work but the Pr
 3. Deploy to the same verified production domain.
 4. Confirm `https://YOUR_DOMAIN/validation-key.txt` still returns the existing validation key.
 5. Open the production URL inside Pi Browser and sign in.
-6. Test a Premium U2A purchase with a controlled account only after the KV store is configured.
-7. Verify that a successful purchase stays Premium after reloading and signing back in.
+6. Confirm level/HP/score restore after closing and reopening the app.
+7. Confirm Game Over can restart the current level without deleting accumulated score/progress.
+8. Test a Premium U2A purchase with a controlled account only after the KV store is configured.
+9. Verify that a successful purchase stays Premium after reloading and signing back in.
 
 ## About A2U rewards
 
