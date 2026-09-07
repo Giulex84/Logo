@@ -2,6 +2,20 @@
 
 This revision follows the current Pi developer architecture: Pi SDK on the frontend, `/v2/me` verification on the backend, Server API Key only on the backend, and U2A approval/completion performed server-side.
 
+## Review / release status
+
+- Network: **Pi Mainnet**
+- Pi SDK mode: `sandbox: false`
+- Developer Portal version currently submitted/pending: **1.0.2**
+- Authentication: Pi SDK only
+- Transactions: Pi only
+- Premium: **1 Pi U2A**, verified server-side and persisted by verified Pi UID
+- Gameplay progress: persisted server-side and restored by verified Pi UID
+- Mainnet A2U gameplay rewards: **disabled intentionally** until explicitly authorized for the production app
+- Public review documents: `privacy.html`, `terms.html`, and `validation-key.txt` on the verified production domain
+
+The current Developer Portal update request should not be discarded merely to change the version number; use the next version only for a future submission after the pending review is resolved.
+
 ## Important changes
 
 - `Pi.init({ version: "2.0", sandbox: false })` is explicit for production.
